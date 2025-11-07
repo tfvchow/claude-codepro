@@ -28,7 +28,7 @@
 - `/remember` - Stores learnings in cross-session memory → Continue after /clear (Sonnet 4.5)
 - `/verify` - E2E spec verification with CodeRabbit AI review → All tests, quality, security (Sonnet 4.5)
 
-### 🎨 Auto-Enforce Best Practices and Standards via Skills
+### 💡 Auto-Enforce Best Practices and Standards via Skills
 - **Testing Skills** - TDD, test writing, anti-patterns, debugging, verification, code review
 - **Global Skills** - Coding style, commenting, conventions, error handling, validation
 - **Backend Skills** - API design, models, queries, migrations
@@ -46,7 +46,7 @@
 - **Newman** - API end-to-end testing with Postman collections
 - **uv, ruff, mypy, basedpyright** - Python linter, formatter, and type checker
 
-### 🐳 Automated Dev Container Setup (VS Code / Cursor / Windsurf)
+### 🏗️ Automated Dev Container Setup (VS Code / Cursor / Windsurf)
 - **Integrated Features** - Zsh, Node.js, Docker-in-Docker, uv, ruff, basedpyright, git, fzf
 - **IDE Extensions** - Python, Docker, SQL, testing, formatting, and development tools
 - **CLI Tools** - qlty, Claude Code, Statusline, dotenvx, CodeRabbit, Cipher, Newman
@@ -73,7 +73,7 @@
 
 ---
 
-## 🚦 How-to-use
+## 📒 How-to-use
 
 ### ⚙️ Configuration
 
