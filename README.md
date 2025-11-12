@@ -81,10 +81,10 @@ Stop vibe coding, start shipping systematically with Spec-Driven Development, TD
 ### 📥 Installation
 
 1. Clone this repository: `git clone https://github.com/maxritter/claude-codepro.git`
-2. Copy `.env.example` to `.env` and add your credentials and API keys
+2. Copy `.env.codepro.template` to `.env.codepro` and add your credentials and API keys
 ```bash
-cp .env.example .env
-vim .env
+cp .env.codepro.template .env.codepro
+vim .env.codepro
 ```
 3. Open folder in VS Code, click on the button on the bottom-left: `Reopen in Container` or open the command pallette via `Ctrl + Shift + P` and then use `> Dev Containers: Reopen in Container`
 4. Wait for automatic build to finish, this can take a couple of minutes (feel free to watch the logs in `Terminal`)
@@ -139,6 +139,28 @@ The system uses a modular rules-based architecture that automatically generates 
 - `.claude/rules/builder.py` - Assembles markdown rules into commands and skills
 
 **Auto-Rebuild:** Commands and skills are automatically regenerated on every `cc` startup, making customization seamless.
+
+### 🗄️ Vector DB Collection Isolation
+
+**Important:** Claude CodePro uses Vector DB (Zilliz Cloud) for two purposes:
+- **Cipher Memory** - Stores learnings, decisions, and context via `/remember`
+- **Claude Context** - Indexes your codebase for semantic search
+
+**Automatic Project Isolation:**
+- **Cipher** uses project-specific collections: `<project-folder>_knowledge` (auto-derived from folder name)
+- **Claude Context** auto-generates unique collections per codebase path
+- **Reflection Memory** shared across all your projects to learn your development style
+
+**Configuration in `.env.codepro`:**
+```bash
+# Automatically uses project folder name
+VECTOR_STORE_COLLECTION="$(basename $PWD)_knowledge"
+
+# Shared across all your projects
+REFLECTION_VECTOR_STORE_COLLECTION="reflection"
+```
+
+This prevents memory mixing when working on multiple projects. Each project maintains isolated knowledge while reflection memory learns your patterns across all projects.
 
 ## ⚖️ What Makes This Different
 

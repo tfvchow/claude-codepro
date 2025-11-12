@@ -55,7 +55,7 @@ docker-compose -f .devcontainer/docker-compose.yml up -d
 {
     echo ""
     echo "# Claude Code quick alias"
-    echo 'alias cc="cd /workspaces/claude-codepro && uv run .claude/rules/builder.py && clear && dotenvx run claude"'
+    echo 'alias cc="cd /workspaces/claude-codepro && uv run .claude/rules/builder.py && clear && dotenvx run -f .env -f .env.codepro -- claude"'
 } | tee -a ~/.bashrc ~/.zshrc >/dev/null
 
 # Print finish message
@@ -67,8 +67,8 @@ echo ""
 echo "📋 Next Steps:"
 echo ""
 echo "1. Configure your environment:"
-echo "   cp .env.example .env"
-echo "   vim .env  # Add your API keys and credentials"
+echo "   cp .env.codepro.template .env.codepro"
+echo "   vim .env.codepro  # Add your API keys and credentials"
 echo ""
 echo "2. Run setup commands:"
 echo "   cc  # Setup Claude Code"

@@ -4,7 +4,7 @@
     {
       "label": "Claude",
       "type": "shell",
-      "command": "dotenvx run claude",
+      "command": "dotenvx run -f .env -f .env.codepro -- claude",
       "group": {
         "kind": "build",
         "isDefault": false
@@ -31,7 +31,7 @@
     {
       "label": "CodeRabbit",
       "type": "shell",
-      "command": "dotenvx run coderabbit",
+      "command": "dotenvx run -f .env -f .env.codepro -- coderabbit",
       "group": {
         "kind": "build",
         "isDefault": false
