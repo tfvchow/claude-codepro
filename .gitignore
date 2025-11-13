@@ -153,6 +153,7 @@ activemq-data/
 
 # Environments
 .env
+.env.codepro
 .envrc
 .venv
 env/
