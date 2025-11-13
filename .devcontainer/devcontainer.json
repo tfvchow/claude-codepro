@@ -5,9 +5,9 @@
   },
   "runArgs": [
     "--name",
-    "claude-codepro"
+    "${localWorkspaceFolderBasename}"
   ],
-  "workspaceFolder": "/workspaces/claude-codepro",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
   "customizations": {
     "vscode": {
       "extensions": [

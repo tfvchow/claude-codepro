@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+# Get the workspace root directory dynamically
+WORKSPACE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
 # Install zsh fzf
 echo -e "\nsource <(fzf --zsh)" >>~/.zshrc
 
@@ -16,13 +19,13 @@ fi
 
 # Install uv venv for Python and sync Commands and Skills
 uv sync --frozen
-uv run /workspaces/claude-codepro/.claude/rules/builder.py
+uv run "${WORKSPACE_ROOT}/.claude/rules/builder.py"
 
 # Install qlty fresh and initialize
-if [ -d "/workspaces/claude-codepro/.qlty" ]; then
-    find /workspaces/claude-codepro/.qlty -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} +
-    find /workspaces/claude-codepro/.qlty -mindepth 1 -maxdepth 1 -type l -delete
-    find /workspaces/claude-codepro/.qlty -mindepth 1 -maxdepth 1 -type f ! -name 'qlty.toml' ! -name '.gitignore' -delete
+if [ -d "${WORKSPACE_ROOT}/.qlty" ]; then
+    find "${WORKSPACE_ROOT}/.qlty" -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} +
+    find "${WORKSPACE_ROOT}/.qlty" -mindepth 1 -maxdepth 1 -type l -delete
+    find "${WORKSPACE_ROOT}/.qlty" -mindepth 1 -maxdepth 1 -type f ! -name 'qlty.toml' ! -name '.gitignore' -delete
 fi
 curl https://qlty.sh | sh
 echo -e "\nexport QLTY_INSTALL=\"$HOME/.qlty\"" >>~/.zshrc
@@ -48,14 +51,14 @@ npm install -g @byterover/cipher
 npm install -g newman
 
 # Start Local Postgres with Docker Compose on Port 5433
-docker-compose -f .devcontainer/docker-compose.yml up -d
+docker-compose -f "${WORKSPACE_ROOT}/.devcontainer/docker-compose.yml" up -d
 
 # Add cc alias for Claude Code with rule builder
 # Runs rule_builder.py before starting Claude Code to ensure commands/skills are up-to-date
 {
     echo ""
     echo "# Claude Code quick alias"
-    echo 'alias cc="cd /workspaces/claude-codepro && uv run .claude/rules/builder.py && clear && dotenvx run -f .env -f .env.codepro -- claude"'
+    echo "alias cc=\"cd ${WORKSPACE_ROOT} && uv run .claude/rules/builder.py && clear && dotenvx run -f .env -f .env.codepro -- claude\""
 } | tee -a ~/.bashrc ~/.zshrc >/dev/null
 
 # Print finish message
