@@ -102,9 +102,9 @@
     },
     "outline.collapseItems": "alwaysCollapse",
     "postman.settings.dotenv-detection-notification-visibility": false,
-    "terminal.integrated.defaultProfile.linux": "zsh",
+    "terminal.integrated.defaultProfile.linux": "bash",
     "terminal.integrated.automationProfile.linux": {
-        "path": "/bin/zsh"
+        "path": "/bin/bash"
     },
     "sqltools.connections": [
         {

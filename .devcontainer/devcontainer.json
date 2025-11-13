@@ -53,11 +53,11 @@
   "features": {
     /* https://github.com/devcontainers/features/tree/main/src/common-utils */
     "ghcr.io/devcontainers/features/common-utils:2": {
-      "installZsh": true,
-      "installOhMyZsh": true,
-      "installOhMyZshConfig": true,
+      "installZsh": false,
+      "installOhMyZsh": false,
+      "installOhMyZshConfig": false,
       "upgradePackages": true,
-      "configureZshAsDefaultShell": true
+      "configureZshAsDefaultShell": false
     },
     /* https://github.com/devcontainers/features/tree/main/src/node */
     "ghcr.io/devcontainers/features/node:1": {
