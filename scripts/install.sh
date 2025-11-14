@@ -105,30 +105,23 @@ install_directory() {
     local repo_dir=$1
     local dest_base=$2
 
-    print_status "Fetching $repo_dir files..."
+    print_status "Installing $repo_dir files..."
 
     local file_count=0
     local files
     files=$(get_repo_files "$repo_dir")
 
-    local total_files
-    total_files=$(echo "$files" | grep -c . || echo 0)
-
     if [[ -n "$files" ]]; then
-        local processed=0
         while IFS= read -r file_path; do
             if [[ -n "$file_path" ]]; then
-                ((processed++)) || true
-                printf "\r   [%d/%d] Downloading %s..." "$processed" "$total_files" "$(basename "$file_path")"
-
                 local dest_file="${dest_base}/${file_path}"
 
                 if download_file "$file_path" "$dest_file" 2>/dev/null; then
                     ((file_count++)) || true
+                    echo "   ✓ $(basename "$file_path")"
                 fi
             fi
         done <<< "$files"
-        echo ""  # New line after progress
     fi
 
     print_success "Installed $file_count files"
@@ -444,22 +437,15 @@ main() {
     print_section "Installing Claude CodePro Files"
 
     # Download .claude directory (update existing files, preserve settings.local.json)
-    print_status "Fetching file list from repository..."
+    print_status "Installing .claude files..."
+
     local files
     files=$(get_repo_files ".claude")
 
-    # Count total files
-    local total_files
-    total_files=$(echo "$files" | grep -c . || echo 0)
-    print_status "Found $total_files files to sync"
-
     local file_count=0
-    local processed=0
     if [[ -n "$files" ]]; then
         while IFS= read -r file_path; do
             if [[ -n "$file_path" ]]; then
-                ((processed++)) || true
-
                 # Skip Python hook if Python not selected
                 if [[ "$INSTALL_PYTHON" =~ ^[Yy]$ ]] || [[ "$file_path" != *"file_checker_python.sh"* ]]; then
                     # Ask about settings.local.json if it already exists
@@ -471,17 +457,14 @@ main() {
                         [[ ! $REPLY =~ ^[Yy]$ ]] && print_success "Kept existing settings.local.json" && continue
                     fi
 
-                    # Show progress for every file
-                    printf "\r   [%d/%d] Downloading %s..." "$processed" "$total_files" "$(basename "$file_path")"
-
                     local dest_file="${PROJECT_DIR}/${file_path}"
                     if download_file "$file_path" "$dest_file" 2>/dev/null; then
                         ((file_count++)) || true
+                        echo "   ✓ $(basename "$file_path")"
                     fi
                 fi
             fi
         done <<< "$files"
-        echo ""  # New line after progress
     fi
 
     # Remove Python hook from settings.local.json if Python not selected
@@ -594,21 +577,23 @@ with open('$PROJECT_DIR/.claude/settings.local.json', 'w') as f:
     echo ""
     echo -e "${BLUE}What's next?${NC} Follow these steps to get started:"
     echo ""
-    echo -e "${YELLOW}STEP 1: Start Claude Code${NC}"
-    echo "   → Reload your shell: source ~/.bashrc  (or ~/.zshrc for zsh)"
-    echo "   → Launch Claude Code: cc"
+    echo -e "${YELLOW}STEP 1: Reload Your Shell${NC}"
+    echo "   → Run: source ~/.zshrc  (or ~/.bashrc for bash)"
     echo ""
-    echo -e "${YELLOW}STEP 2: Configure Claude Code${NC}"
+    echo -e "${YELLOW}STEP 2: Start Claude Code${NC}"
+    echo "   → Launch with: cc"
+    echo ""
+    echo -e "${YELLOW}STEP 3: Configure Claude Code${NC}"
     echo "   → In Claude Code, run: /config"
     echo "   → Set 'Auto-connect to IDE' = true"
     echo "   → Set 'Auto-compact' = false"
     echo ""
-    echo -e "${YELLOW}STEP 3: Verify Everything Works${NC}"
+    echo -e "${YELLOW}STEP 4: Verify Everything Works${NC}"
     echo "   → Run: /ide        (Connect to VS Code diagnostics)"
     echo "   → Run: /mcp        (Verify all MCP servers are online)"
     echo "   → Run: /context    (Check context usage is below 20%)"
     echo ""
-    echo -e "${YELLOW}STEP 4: Start Building!${NC}"
+    echo -e "${YELLOW}STEP 5: Start Building!${NC}"
     echo ""
     echo -e "   ${BLUE}For quick changes:${NC}"
     echo "   → /quick           Fast development for fixes and refactoring"

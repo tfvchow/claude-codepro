@@ -127,11 +127,13 @@ setup_env_file() {
 
     # Create or append to .env file
     if $APPEND_MODE; then
-        # Append mode: add missing keys
-        echo "" >> "$ENV_FILE"
-        echo "# =============================================================================" >> "$ENV_FILE"
-        echo "# Claude CodePro Configuration" >> "$ENV_FILE"
-        echo "# =============================================================================" >> "$ENV_FILE"
+        # Append mode: add missing keys (only add header if not already present)
+        if ! grep -q "# Claude CodePro Configuration" "$ENV_FILE"; then
+            echo "" >> "$ENV_FILE"
+            echo "# =============================================================================" >> "$ENV_FILE"
+            echo "# Claude CodePro Configuration" >> "$ENV_FILE"
+            echo "# =============================================================================" >> "$ENV_FILE"
+        fi
 
         add_env_key "MILVUS_TOKEN" "${MILVUS_TOKEN}" "Zilliz Cloud (Free Vector DB for Semantic Search & Persistent Memory)" "$ENV_FILE"
         add_env_key "MILVUS_ADDRESS" "${MILVUS_ADDRESS}" "" "$ENV_FILE"
