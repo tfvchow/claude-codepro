@@ -12,7 +12,7 @@
       "command": "npx",
       "args": ["-y", "@zilliz/claude-context-mcp"],
       "env": {
-        "CUSTOM_IGNORE_PATTERNS": "**/__pycache__/**,**/*.pyc,**/*.pyo,**/*.pyd,**/.pytest_cache/**,**/.coverage,**/.coverage.*,**/.mypy_cache/**,**/.ruff_cache/**,**/.pytype/**,**/htmlcov/**,**/cover/**,**/.tox/**,**/.nox/**,**/*.log,**/.env,**/.env.*,**/.venv/**,**/venv/**,**/ENV/**,**/env/**,**/node_modules/**,**/build/**,**/dist/**,**/*.egg-info/**,.eggs/**,**/.git/**,**/.DS_Store,**/*.parquet,**/*.csv,**/*.tsv,**/*.xls,**/*.xlsx,**/*.db,**/*.sqlite,**/*.sqlite3,data/**,**/.pixi/**,**/.pdm-build/**,**/.abstra/**,**/__marimo__/**,**/.streamlit/secrets.toml"
+        "CUSTOM_IGNORE_PATTERNS": "**/__pycache__/**,**/*.pyc,**/*.pyo,**/*.pyd,**/.pytest_cache/**,**/.coverage,**/.coverage.*,**/.mypy_cache/**,**/.ruff_cache/**,**/.pytype/**,**/htmlcov/**,**/cover/**,**/.tox/**,**/.nox/**,**/*.log,**/.env,**/.env.*,**/.venv/**,**/venv/**,**/ENV/**,**/env/**,**/node_modules/**,**/build/**,**/dist/**,**/*.egg-info/**,.eggs/**,**/.git/**,**/.DS_Store,**/*.parquet,**/*.csv,**/*.tsv,**/*.xls,**/*.xlsx,**/*.db,**/*.sqlite,**/*.sqlite3,data/**,**/*.lock,**/.pixi/**,**/.pdm-build/**,**/.abstra/**,**/__marimo__/**,**/.streamlit/secrets.toml"
       }
     },
     "cipher": {
