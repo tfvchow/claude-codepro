@@ -93,10 +93,10 @@ add_cc_alias() {
 	ensure_nvm_in_shell "$HOME/.zshrc" ".zshrc"
 
 	# Flexible NVM detection for bash/zsh alias
-	local bash_alias="alias ${alias_name}=\"cd '$PROJECT_DIR' && ([ -s \\\"\\\$HOME/.nvm/nvm.sh\\\" ] && export NVM_DIR=\\\"\\\$HOME/.nvm\\\" || [ -s \\\"/usr/local/share/nvm/nvm.sh\\\" ] && export NVM_DIR=\\\"/usr/local/share/nvm\\\") && [ -s \\\"\\\$NVM_DIR/nvm.sh\\\" ] && . \\\"\\\$NVM_DIR/nvm.sh\\\" && nvm use && bash scripts/build-rules.sh &>/dev/null && clear && dotenvx run -- claude\""
+	local bash_alias="alias ${alias_name}=\"cd '$PROJECT_DIR' && ([ -s \\\"\\\$HOME/.nvm/nvm.sh\\\" ] && export NVM_DIR=\\\"\\\$HOME/.nvm\\\" || [ -s \\\"/usr/local/share/nvm/nvm.sh\\\" ] && export NVM_DIR=\\\"/usr/local/share/nvm\\\") && [ -s \\\"\\\$NVM_DIR/nvm.sh\\\" ] && . \\\"\\\$NVM_DIR/nvm.sh\\\" && nvm use && bash .claude/rules/build.sh &>/dev/null && clear && dotenvx run -- claude\""
 
 	# Flexible NVM detection for fish alias
-	local fish_alias="alias ${alias_name}='cd $PROJECT_DIR; and begin; if test -s \"\$HOME/.nvm/nvm.sh\"; set -x NVM_DIR \"\$HOME/.nvm\"; else if test -s \"/usr/local/share/nvm/nvm.sh\"; set -x NVM_DIR \"/usr/local/share/nvm\"; end; end; and test -s \"\$NVM_DIR/nvm.sh\"; and source \"\$NVM_DIR/nvm.sh\"; and nvm use; and bash scripts/build-rules.sh &>/dev/null; and clear; and dotenvx run -- claude; end'"
+	local fish_alias="alias ${alias_name}='cd $PROJECT_DIR; and begin; if test -s \"\$HOME/.nvm/nvm.sh\"; set -x NVM_DIR \"\$HOME/.nvm\"; else if test -s \"/usr/local/share/nvm/nvm.sh\"; set -x NVM_DIR \"/usr/local/share/nvm\"; end; end; and test -s \"\$NVM_DIR/nvm.sh\"; and source \"\$NVM_DIR/nvm.sh\"; and nvm use; and bash .claude/rules/build.sh &>/dev/null; and clear; and dotenvx run -- claude; end'"
 
 	add_shell_alias "$HOME/.bashrc" "$bash_alias" ".bashrc" "$alias_name"
 	add_shell_alias "$HOME/.zshrc" "$bash_alias" ".zshrc" "$alias_name"

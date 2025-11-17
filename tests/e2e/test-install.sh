@@ -142,20 +142,43 @@ test_non_interactive_install() {
 	assert_dir_exists "$test_dir/.claude/hooks" "Hooks directory" || return 1
 	assert_dir_exists "$test_dir/.claude/rules" "Rules directory" || return 1
 
-	# Commands and skills directories are created by build-rules.sh, not strictly required for basic install
+	# Commands and skills directories are created by build.sh, not strictly required for basic install
 	if [[ -d "$test_dir/.claude/commands" ]]; then
 		print_success "Commands directory exists (optional)"
 	else
-		print_info "Commands directory not yet created (will be created by build-rules.sh)"
+		print_info "Commands directory not yet created (will be created by build.sh)"
 	fi
 
 	if [[ -d "$test_dir/.claude/skills" ]]; then
 		print_success "Skills directory exists (optional)"
 	else
-		print_info "Skills directory not yet created (will be created by build-rules.sh)"
+		print_info "Skills directory not yet created (will be created by build.sh)"
 	fi
 
+	assert_file_exists "$test_dir/.claude/settings.local.template.json" "Settings template file" || return 1
 	assert_file_exists "$test_dir/.claude/settings.local.json" "Settings file" || return 1
+
+	# Verify settings.local.json was generated from template with absolute paths
+	print_test "Verifying settings.local.json has absolute paths"
+	if grep -q "$test_dir/.claude/hooks/file_checker_qlty.sh" "$test_dir/.claude/settings.local.json"; then
+		print_success "settings.local.json contains absolute paths"
+	else
+		print_error "settings.local.json does not contain absolute paths"
+		echo "Expected path: $test_dir/.claude/hooks/file_checker_qlty.sh"
+		echo "Actual content:"
+		grep "file_checker_qlty.sh" "$test_dir/.claude/settings.local.json" || echo "(pattern not found)"
+		return 1
+	fi
+
+	# Verify template still has placeholders
+	print_test "Verifying template still has placeholders"
+	if grep -q "{{PROJECT_DIR}}" "$test_dir/.claude/settings.local.template.json"; then
+		print_success "Template file contains placeholders"
+	else
+		print_error "Template file missing placeholders"
+		return 1
+	fi
+
 	assert_file_exists "$test_dir/.nvmrc" "Node version file" || return 1
 
 	assert_dir_exists "$test_dir/.cipher" "Cipher directory" || return 1
@@ -167,7 +190,7 @@ test_non_interactive_install() {
 	assert_dir_exists "$test_dir/scripts" "Scripts directory" || return 1
 	assert_dir_exists "$test_dir/scripts/lib" "Scripts lib directory" || return 1
 	assert_file_exists "$test_dir/scripts/lib/setup-env.sh" "Setup env script" || return 1
-	assert_file_exists "$test_dir/scripts/build-rules.sh" "Build rules script" || return 1
+	assert_file_exists "$test_dir/.claude/rules/build.sh" "Build rules script" || return 1
 
 	# Verify .nvmrc content
 	print_test "Verifying .nvmrc contains Node.js 22"
@@ -410,6 +433,104 @@ test_bootstrap_download() {
 }
 
 # =============================================================================
+# Test: Hooks Work from Subdirectories (Absolute Paths)
+# =============================================================================
+
+test_hooks_absolute_paths() {
+	print_section "Test: Hooks Work from Subdirectories (Absolute Paths)"
+
+	local test_dir="$TEST_DIR/test-hooks"
+	mkdir -p "$test_dir"
+	cd "$test_dir"
+
+	# Initialize git repo
+	git init
+	git config user.email "test@example.com"
+	git config user.name "Test User"
+	touch .gitkeep
+	git add .gitkeep
+	git commit -m "Initial commit" >/dev/null 2>&1
+
+	# Run installation
+	print_test "Installing Claude CodePro"
+	export INSTALL_PYTHON=Y
+	export OVERWRITE_SETTINGS=N
+
+	if bash "$PROJECT_ROOT/scripts/install.sh" --local --non-interactive --skip-env >install.log 2>&1; then
+		print_success "Installation completed"
+	else
+		print_error "Installation failed"
+		cat install.log
+		return 1
+	fi
+
+	# Verify settings.local.json has absolute paths
+	print_test "Verifying settings.local.json contains absolute paths"
+	if grep -q "$test_dir/.claude/hooks/file_checker_qlty.sh" "$test_dir/.claude/settings.local.json"; then
+		print_success "settings.local.json has absolute hook paths"
+	else
+		print_error "settings.local.json missing absolute paths"
+		grep "file_checker_qlty.sh" "$test_dir/.claude/settings.local.json"
+		return 1
+	fi
+
+	# Extract the absolute hook path from settings
+	local hook_path
+	hook_path=$(grep -o "$test_dir/.claude/hooks/file_checker_qlty.sh" "$test_dir/.claude/settings.local.json" | head -1)
+
+	# Create a subdirectory and test from there
+	mkdir -p "$test_dir/src/components/deep/nested"
+	cd "$test_dir/src/components/deep/nested"
+
+	print_test "Testing hook execution from subdirectory: $(pwd | sed "s|$test_dir/||")"
+
+	# Verify we're NOT in the project root
+	if [[ "$(pwd)" == "$test_dir" ]]; then
+		print_error "Still in project root, test setup failed"
+		return 1
+	fi
+
+	# Create a test file to trigger the hook
+	echo "test content" > test.sh
+
+	# Try to execute the hook (simulate what Claude Code would do)
+	print_test "Executing hook from $(pwd | sed "s|$test_dir/||")"
+
+	if [[ -x "$hook_path" ]]; then
+		print_success "Hook script is executable and found via absolute path"
+	else
+		print_error "Hook script not found or not executable at: $hook_path"
+		echo "Current directory: $(pwd)"
+		echo "Project root: $test_dir"
+		ls -la "$test_dir/.claude/hooks/" || echo "Hooks directory not found"
+		return 1
+	fi
+
+	# Execute hook with the test file
+	if bash "$hook_path" "test.sh" >hook.log 2>&1 || true; then
+		print_success "Hook executed from nested subdirectory"
+	else
+		print_error "Hook execution failed"
+		cat hook.log
+		return 1
+	fi
+
+	# Test with relative path (this would fail with old setup)
+	cd "$test_dir/src/components"
+	print_test "Testing from another subdirectory: $(pwd | sed "s|$test_dir/||")"
+
+	if bash "$hook_path" "deep/nested/test.sh" >hook2.log 2>&1 || true; then
+		print_success "Hook works from different subdirectory"
+	else
+		print_error "Hook failed from different subdirectory"
+		cat hook2.log
+		return 1
+	fi
+
+	print_success "Hooks work correctly from subdirectories with absolute paths"
+}
+
+# =============================================================================
 # Main Test Runner
 # =============================================================================
 
@@ -427,6 +548,7 @@ main() {
 	test_idempotency || true
 	test_invalid_arguments || true
 	test_bootstrap_download || true
+	test_hooks_absolute_paths || true
 
 	# Print summary
 	print_section "Test Summary"

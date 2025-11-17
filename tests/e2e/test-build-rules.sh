@@ -2,7 +2,7 @@
 
 # =============================================================================
 # End-to-End Test for Rule Builder Script
-# Tests build-rules.sh functionality with standard/custom structure
+# Tests .claude/rules/build.sh functionality with standard/custom structure
 # =============================================================================
 
 set -e
@@ -68,11 +68,10 @@ test_build_rules_standard() {
 	local test_dir="$TEST_DIR/test-standard"
 	mkdir -p "$test_dir/.claude/rules/standard/"{core,workflow,extended}
 	mkdir -p "$test_dir/.claude/rules/custom/"{core,workflow,extended}
-	mkdir -p "$test_dir/scripts"
 
-	# Copy build-rules.sh script
-	cp "$PROJECT_ROOT/scripts/build-rules.sh" "$test_dir/scripts/"
-	chmod +x "$test_dir/scripts/build-rules.sh"
+	# Copy build.sh script
+	cp "$PROJECT_ROOT/.claude/rules/build.sh" "$test_dir/.claude/rules/"
+	chmod +x "$test_dir/.claude/rules/build.sh"
 
 	# Create test rules
 	print_test "Creating test rules in standard structure"
@@ -108,10 +107,10 @@ EOF
 
 	print_success "Test files created"
 
-	# Run build-rules.sh
-	print_test "Running build-rules.sh"
+	# Run build.sh
+	print_test "Running build.sh"
 	cd "$test_dir"
-	if bash scripts/build-rules.sh >build.log 2>&1; then
+	if bash .claude/rules/build.sh >build.log 2>&1; then
 		print_success "Build completed without errors"
 	else
 		print_error "Build failed"
@@ -181,11 +180,10 @@ test_build_rules_custom_explicit() {
 	local test_dir="$TEST_DIR/test-custom"
 	mkdir -p "$test_dir/.claude/rules/standard/core"
 	mkdir -p "$test_dir/.claude/rules/custom/core"
-	mkdir -p "$test_dir/scripts"
 
-	# Copy build-rules.sh script
-	cp "$PROJECT_ROOT/scripts/build-rules.sh" "$test_dir/scripts/"
-	chmod +x "$test_dir/scripts/build-rules.sh"
+	# Copy build.sh script
+	cp "$PROJECT_ROOT/.claude/rules/build.sh" "$test_dir/.claude/rules/"
+	chmod +x "$test_dir/.claude/rules/build.sh"
 
 	# Create standard rule
 	cat >"$test_dir/.claude/rules/standard/core/explicit-test.md" <<'EOF'
@@ -212,7 +210,7 @@ EOF
 
 	print_test "Running build with explicit custom rule selection"
 	cd "$test_dir"
-	bash scripts/build-rules.sh >/dev/null 2>&1
+	bash .claude/rules/build.sh >/dev/null 2>&1
 
 	# Verify custom rule is used (because we explicitly requested it)
 	print_test "Verifying custom rule is used when explicitly selected"
@@ -238,11 +236,10 @@ test_build_rules_standard_and_custom_separate() {
 	local test_dir="$TEST_DIR/test-separate"
 	mkdir -p "$test_dir/.claude/rules/standard/core"
 	mkdir -p "$test_dir/.claude/rules/custom/core"
-	mkdir -p "$test_dir/scripts"
 
-	# Copy build-rules.sh script
-	cp "$PROJECT_ROOT/scripts/build-rules.sh" "$test_dir/scripts/"
-	chmod +x "$test_dir/scripts/build-rules.sh"
+	# Copy build.sh script
+	cp "$PROJECT_ROOT/.claude/rules/build.sh" "$test_dir/.claude/rules/"
+	chmod +x "$test_dir/.claude/rules/build.sh"
 
 	# Create standard version
 	cat >"$test_dir/.claude/rules/standard/core/mcp-tools.md" <<'EOF'
@@ -272,7 +269,7 @@ EOF
 
 	print_test "Running build with both standard and custom mcp-tools"
 	cd "$test_dir"
-	bash scripts/build-rules.sh >/dev/null 2>&1
+	bash .claude/rules/build.sh >/dev/null 2>&1
 
 	# Verify BOTH versions are included (not duplicated)
 	print_test "Verifying both standard and custom versions are included"

@@ -19,20 +19,10 @@ YELLOW='\033[1;33m'
 NC='\033[0m'
 
 # Find .claude directory
+# Script is located at .claude/rules/build.sh
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CLAUDE_DIR=""
-
-# Try to find .claude directory
-if [[ -d "$SCRIPT_DIR/../.claude" ]]; then
-    CLAUDE_DIR="$(cd "$SCRIPT_DIR/../.claude" && pwd)"
-elif [[ -d "$(pwd)/.claude" ]]; then
-    CLAUDE_DIR="$(cd "$(pwd)/.claude" && pwd)"
-else
-    echo "Error: Could not find .claude directory"
-    exit 1
-fi
-
-RULES_DIR="$CLAUDE_DIR/rules"
+CLAUDE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
+RULES_DIR="$SCRIPT_DIR"
 COMMANDS_DIR="$CLAUDE_DIR/commands"
 SKILLS_DIR="$CLAUDE_DIR/skills"
 

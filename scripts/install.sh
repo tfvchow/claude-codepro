@@ -192,20 +192,20 @@ merge_rules_config() {
 # =============================================================================
 
 # Build Claude Code commands and skills
-# Executes the build-rules.sh script to generate command/skill files
+# Executes the build.sh script to generate command/skill files
 build_rules() {
 	print_status "Building Claude Code commands and skills..."
 
-	if [[ ! -f "$PROJECT_DIR/scripts/build-rules.sh" ]]; then
-		print_warning "build-rules.sh not found, skipping"
+	if [[ ! -f "$PROJECT_DIR/.claude/rules/build.sh" ]]; then
+		print_warning "build.sh not found, skipping"
 		return
 	fi
 
-	if bash "$PROJECT_DIR/scripts/build-rules.sh"; then
+	if bash "$PROJECT_DIR/.claude/rules/build.sh"; then
 		print_success "Built commands and skills"
 	else
 		print_error "Failed to build commands and skills"
-		print_warning "You may need to run 'bash scripts/build-rules.sh' manually"
+		print_warning "You may need to run 'bash .claude/rules/build.sh' manually"
 	fi
 }
 
@@ -290,22 +290,13 @@ main() {
 					continue
 				fi
 
+				# Skip settings.local.json (will be generated from template)
+				if [[ $file_path == *"settings.local.json"* ]] && [[ $file_path != *"settings.local.template.json"* ]]; then
+					continue
+				fi
+
 				# Skip Python hook if Python not selected
 				if [[ $INSTALL_PYTHON =~ ^[Yy]$ ]] || [[ $file_path != *"file_checker_python.sh"* ]]; then
-					# Ask about settings.local.json if it already exists (only in interactive mode)
-					if [[ $file_path == *"settings.local.json"* ]] && [[ -f "$PROJECT_DIR/.claude/settings.local.json" ]]; then
-						if [[ $NON_INTERACTIVE != "true" ]]; then
-							print_warning "settings.local.json already exists"
-							echo "This file may contain new features in this version."
-							read -r -p "Overwrite settings.local.json? (y/N): " -n 1 </dev/tty
-							echo
-							[[ ! $REPLY =~ ^[Yy]$ ]] && print_success "Kept existing settings.local.json" && continue
-						else
-							# In non-interactive mode, always keep existing settings
-							print_success "Kept existing settings.local.json"
-							continue
-						fi
-					fi
 
 					# Special handling for config.yaml to preserve custom rules
 					if [[ $file_path == *"rules/config.yaml"* ]] && [[ -f "$PROJECT_DIR/.claude/rules/config.yaml" ]]; then
@@ -340,6 +331,41 @@ main() {
 			echo "   ✓ Created custom/$category/"
 		fi
 	done
+
+	# Generate settings.local.json from template
+	print_status "Generating settings.local.json from template..."
+	if [[ -f "$PROJECT_DIR/.claude/settings.local.template.json" ]]; then
+		# Check if settings.local.json already exists
+		if [[ -f "$PROJECT_DIR/.claude/settings.local.json" ]]; then
+			if [[ $NON_INTERACTIVE != "true" ]]; then
+				print_warning "settings.local.json already exists"
+				echo "This file may contain new features in this version."
+				read -r -p "Regenerate settings.local.json from template? (y/N): " -n 1 </dev/tty
+				echo
+				if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+					print_success "Kept existing settings.local.json"
+				else
+					# Read template and replace {{PROJECT_DIR}} with actual project directory
+					sed "s|{{PROJECT_DIR}}|$PROJECT_DIR|g" "$PROJECT_DIR/.claude/settings.local.template.json" > "$PROJECT_DIR/.claude/settings.local.json"
+					print_success "Regenerated settings.local.json with absolute paths"
+				fi
+			else
+				# In non-interactive mode, check OVERWRITE_SETTINGS
+				if [[ $OVERWRITE_SETTINGS =~ ^[Yy]$ ]]; then
+					sed "s|{{PROJECT_DIR}}|$PROJECT_DIR|g" "$PROJECT_DIR/.claude/settings.local.template.json" > "$PROJECT_DIR/.claude/settings.local.json"
+					print_success "Regenerated settings.local.json with absolute paths"
+				else
+					print_success "Kept existing settings.local.json"
+				fi
+			fi
+		else
+			# First time installation - always generate
+			sed "s|{{PROJECT_DIR}}|$PROJECT_DIR|g" "$PROJECT_DIR/.claude/settings.local.template.json" > "$PROJECT_DIR/.claude/settings.local.json"
+			print_success "Generated settings.local.json with absolute paths"
+		fi
+	else
+		print_warning "settings.local.template.json not found, skipping generation"
+	fi
 
 	# Remove Python hook from settings.local.json if Python not selected
 	if [[ ! $INSTALL_PYTHON =~ ^[Yy]$ ]] && [[ -f "$PROJECT_DIR/.claude/settings.local.json" ]]; then
@@ -408,9 +434,10 @@ main() {
 	# Install scripts
 	mkdir -p "$PROJECT_DIR/scripts/lib"
 	install_file "scripts/lib/setup-env.sh" "$PROJECT_DIR/scripts/lib/setup-env.sh"
-	install_file "scripts/build-rules.sh" "$PROJECT_DIR/scripts/build-rules.sh"
-	chmod +x "$PROJECT_DIR/scripts/"*.sh
+	install_file ".claude/rules/build.sh" "$PROJECT_DIR/.claude/rules/build.sh"
+	chmod +x "$PROJECT_DIR/scripts/"*.sh 2>/dev/null || true
 	chmod +x "$PROJECT_DIR/scripts/lib/"*.sh
+	chmod +x "$PROJECT_DIR/.claude/rules/build.sh"
 	echo ""
 
 	# Create .nvmrc for Node.js version management
