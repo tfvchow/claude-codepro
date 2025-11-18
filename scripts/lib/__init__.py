@@ -7,15 +7,27 @@ Each module provides specific functionality for installing and configuring the e
 
 __version__ = "3.0.0"  # Python rewrite version
 
-# Module exports will be added as modules are converted
+# Import all modules
+from . import (
+    dependencies,
+    devcontainer,
+    downloads,
+    env_setup,
+    files,
+    migration,
+    shell_config,
+    ui,
+    utils,
+)
+
 __all__ = [
+    "dependencies",
+    "devcontainer",
+    "downloads",
+    "env_setup",
+    "files",
+    "migration",
+    "shell_config",
     "ui",
     "utils",
-    "downloads",
-    "files",
-    "dependencies",
-    "shell_config",
-    "migration",
-    "env_setup",
-    "devcontainer",
 ]

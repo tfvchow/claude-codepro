@@ -54,6 +54,9 @@ def download_file(
         source_file = config.local_repo_dir / repo_path
         if source_file.is_file():
             try:
+                # If source and dest are the same, just return success
+                if source_file.resolve() == dest_path.resolve():
+                    return True
                 shutil.copy2(source_file, dest_path)
                 return True
             except Exception:

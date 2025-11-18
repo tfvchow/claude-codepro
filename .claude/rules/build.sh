@@ -312,6 +312,10 @@ build_commands() {
     log_info ""
     log_info "Building commands..."
 
+    # Clean commands directory (remove old/deleted commands)
+    if [[ -d "$COMMANDS_DIR" ]]; then
+        rm -rf "$COMMANDS_DIR"
+    fi
     mkdir -p "$COMMANDS_DIR"
 
     local command_count=0
@@ -367,6 +371,10 @@ build_skills() {
     log_info ""
     log_info "Building skills..."
 
+    # Clean skills directory (remove old/deleted skills)
+    if [[ -d "$SKILLS_DIR" ]]; then
+        rm -rf "$SKILLS_DIR"
+    fi
     mkdir -p "$SKILLS_DIR"
 
     local skill_count=0

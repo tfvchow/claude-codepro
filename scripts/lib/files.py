@@ -172,12 +172,88 @@ def merge_yaml_config(
         True on success, False on failure
     """
     try:
-        # Try to import YAML library (optional dependency)
+        # Try to import YAML library (install if needed)
         try:
             import yaml  # type: ignore[import-untyped,import-not-found]
         except ImportError:
-            ui.print_warning("PyYAML not available, cannot merge YAML configs")
-            return False
+            # Install PyYAML
+            ui.print_status("Installing PyYAML...")
+            import subprocess
+            import sys
+
+            try:
+                # Check if we're in a uv environment
+                uv_available = (
+                    subprocess.run(
+                        ["uv", "--version"],
+                        capture_output=True,
+                        check=False,
+                    ).returncode
+                    == 0
+                )
+
+                if uv_available:
+                    # Use uv pip for uv-managed environments
+                    result = subprocess.run(
+                        ["uv", "pip", "install", "pyyaml"],
+                        capture_output=True,
+                        text=True,
+                        check=False,
+                    )
+                else:
+                    # Try regular pip install
+                    result = subprocess.run(
+                        [sys.executable, "-m", "pip", "install", "pyyaml"],
+                        capture_output=True,
+                        text=True,
+                        check=False,
+                    )
+
+                    if result.returncode != 0:
+                        # If pip fails, try with --user flag
+                        result = subprocess.run(
+                            [sys.executable, "-m", "pip", "install", "--user", "pyyaml"],
+                            capture_output=True,
+                            text=True,
+                            check=False,
+                        )
+
+                if result.returncode == 0:
+                    ui.print_success("Installed PyYAML")
+                    # Try to import the freshly installed module
+                    try:
+                        import importlib
+
+                        yaml = importlib.import_module("yaml")  # type: ignore[import-untyped,import-not-found]
+                    except ImportError:
+                        # If import still fails, fall back to copying
+                        import shutil
+
+                        shutil.copy2(new_config_path, existing_config_path)
+                        ui.print_warning(
+                            "Installed PyYAML but import failed - installed new config.yaml (custom rules may need manual merge)"
+                        )
+                        return True
+                else:
+                    # Show error details
+                    error_msg = result.stderr.strip() if result.stderr else "Unknown error"
+                    # Last resort: copy without merging
+                    import shutil
+
+                    shutil.copy2(new_config_path, existing_config_path)
+                    ui.print_warning(
+                        f"Could not install PyYAML ({error_msg[:100]}) - installed new config.yaml (custom rules may need manual merge)"
+                    )
+                    return True
+            except Exception as e:
+                # Last resort: copy without merging
+                import shutil
+
+                shutil.copy2(new_config_path, existing_config_path)
+                ui.print_warning(
+                    f"Failed to install PyYAML ({e}) - installed new config.yaml (custom rules may need manual merge)"
+                )
+                return True
 
         # Load both configs (Any types are expected from YAML parsing)
         with open(new_config_path, "r") as f:
@@ -191,11 +267,7 @@ def merge_yaml_config(
         if "commands" in new_config and "commands" in existing_config:
             for cmd_name, cmd_config in new_config["commands"].items():
                 if cmd_name in existing_config["commands"]:
-                    old_custom = (
-                        existing_config["commands"][cmd_name]
-                        .get("rules", {})
-                        .get("custom", [])
-                    )
+                    old_custom = existing_config["commands"][cmd_name].get("rules", {}).get("custom", [])
                     if "rules" not in cmd_config:
                         cmd_config["rules"] = {}
                     cmd_config["rules"]["custom"] = old_custom

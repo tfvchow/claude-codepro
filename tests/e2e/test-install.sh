@@ -187,9 +187,6 @@ test_non_interactive_install() {
 	assert_file_exists "$test_dir/.mcp.json" "MCP config" || return 1
 	assert_file_exists "$test_dir/.mcp-funnel.json" "MCP Funnel config" || return 1
 
-	assert_dir_exists "$test_dir/scripts" "Scripts directory" || return 1
-	assert_dir_exists "$test_dir/scripts/lib" "Scripts lib directory" || return 1
-	assert_file_exists "$test_dir/scripts/lib/setup-env.sh" "Setup env script" || return 1
 	assert_file_exists "$test_dir/.claude/rules/build.sh" "Build rules script" || return 1
 
 	# Verify .nvmrc content
@@ -201,15 +198,15 @@ test_non_interactive_install() {
 		return 1
 	fi
 
-	# Verify library modules were downloaded
-	print_test "Verifying library modules"
+	# Verify library modules were downloaded (Python version)
+	print_test "Verifying library modules (Python)"
 	assert_dir_exists "$test_dir/scripts/lib" "Library modules directory" || return 1
-	assert_file_exists "$test_dir/scripts/lib/ui.sh" "UI library" || return 1
-	assert_file_exists "$test_dir/scripts/lib/utils.sh" "Utils library" || return 1
-	assert_file_exists "$test_dir/scripts/lib/download.sh" "Download library" || return 1
-	assert_file_exists "$test_dir/scripts/lib/files.sh" "Files library" || return 1
-	assert_file_exists "$test_dir/scripts/lib/dependencies.sh" "Dependencies library" || return 1
-	assert_file_exists "$test_dir/scripts/lib/shell.sh" "Shell library" || return 1
+	assert_file_exists "$test_dir/scripts/lib/ui.py" "UI library" || return 1
+	assert_file_exists "$test_dir/scripts/lib/utils.py" "Utils library" || return 1
+	assert_file_exists "$test_dir/scripts/lib/downloads.py" "Downloads library" || return 1
+	assert_file_exists "$test_dir/scripts/lib/files.py" "Files library" || return 1
+	assert_file_exists "$test_dir/scripts/lib/dependencies.py" "Dependencies library" || return 1
+	assert_file_exists "$test_dir/scripts/lib/shell_config.py" "Shell config library" || return 1
 
 	print_success "All basic installation checks passed"
 }
@@ -360,7 +357,8 @@ test_invalid_arguments() {
 
 	print_test "Running install.sh with invalid argument"
 
-	if bash "$PROJECT_ROOT/scripts/install.sh" --invalid-flag 2>&1 | grep -q "Unknown option"; then
+	# Python's argparse outputs "unrecognized arguments" instead of "Unknown option"
+	if bash "$PROJECT_ROOT/scripts/install.sh" --invalid-flag 2>&1 | grep -qE "(Unknown option|unrecognized arguments)"; then
 		print_success "Invalid argument correctly rejected"
 	else
 		print_error "Invalid argument should have been rejected"
@@ -406,18 +404,19 @@ test_bootstrap_download() {
 		return 1
 	fi
 
-	# Verify all library modules were downloaded
-	print_test "Verifying all library modules were downloaded"
+	# Verify all library modules were downloaded (Python version)
+	print_test "Verifying all library modules were downloaded (Python)"
 
 	local required_modules=(
-		"ui.sh"
-		"utils.sh"
-		"download.sh"
-		"files.sh"
-		"dependencies.sh"
-		"shell.sh"
-		"migration.sh"
-		"setup-env.sh"
+		"ui.py"
+		"utils.py"
+		"downloads.py"
+		"files.py"
+		"dependencies.py"
+		"shell_config.py"
+		"migration.py"
+		"env_setup.py"
+		"devcontainer.py"
 	)
 
 	for module in "${required_modules[@]}"; do
@@ -491,12 +490,12 @@ test_hooks_absolute_paths() {
 	fi
 
 	# Create a test file to trigger the hook
-	echo "test content" > test.sh
+	echo "test content" >test.sh
 
 	# Try to execute the hook (simulate what Claude Code would do)
 	print_test "Executing hook from $(pwd | sed "s|$test_dir/||")"
 
-	if [[ -x "$hook_path" ]]; then
+	if [[ -x $hook_path ]]; then
 		print_success "Hook script is executable and found via absolute path"
 	else
 		print_error "Hook script not found or not executable at: $hook_path"

@@ -9,6 +9,9 @@ Supports: macOS, Linux, WSL
 from __future__ import annotations
 
 import argparse
+import json
+import os
+import subprocess
 import sys
 import tempfile
 import urllib.request
@@ -32,9 +35,7 @@ LIB_MODULES = [
 ]
 
 
-def bootstrap_download(
-    repo_path: str, dest_path: Path, local_mode: bool, local_repo_dir: Path | None
-) -> bool:
+def bootstrap_download(repo_path: str, dest_path: Path, local_mode: bool, local_repo_dir: Path | None) -> bool:
     """
     Minimal download function for bootstrapping (before lib modules are loaded).
 
@@ -73,9 +74,7 @@ def bootstrap_download(
         return False
 
 
-def download_lib_modules(
-    project_dir: Path, local_mode: bool, local_repo_dir: Path | None
-) -> None:
+def download_lib_modules(project_dir: Path, local_mode: bool, local_repo_dir: Path | None) -> None:
     """Download all library modules before importing."""
     lib_dir = project_dir / "scripts" / "lib"
     lib_dir.mkdir(parents=True, exist_ok=True)
@@ -83,6 +82,11 @@ def download_lib_modules(
     for module in LIB_MODULES:
         repo_path = f"scripts/lib/{module}"
         dest_path = lib_dir / module
+
+        # Skip if file already exists (e.g., running install from repo directory)
+        if dest_path.exists():
+            continue
+
         if not bootstrap_download(repo_path, dest_path, local_mode, local_repo_dir):
             print(f"Warning: Failed to download lib/{module}", file=sys.stderr)
 
@@ -91,12 +95,8 @@ def main() -> None:
     """Main installation flow."""
     # Parse arguments
     parser = argparse.ArgumentParser(description="Claude CodePro Installation Script")
-    parser.add_argument(
-        "--non-interactive", action="store_true", help="Run without interactive prompts"
-    )
-    parser.add_argument(
-        "--skip-env", action="store_true", help="Skip environment setup (API keys)"
-    )
+    parser.add_argument("--non-interactive", action="store_true", help="Run without interactive prompts")
+    parser.add_argument("--skip-env", action="store_true", help="Skip environment setup (API keys)")
     parser.add_argument(
         "--local",
         action="store_true",
@@ -173,20 +173,33 @@ def main() -> None:
 
         # Ask about Python support
         if args.non_interactive:
-            install_python = "Y"
+            install_python = os.getenv("INSTALL_PYTHON", "Y")
             ui.print_status(f"Non-interactive mode: Python support = {install_python}")
             print("")
         else:
             print("Do you want to install advanced Python features?")
-            print(
-                "This includes: uv, ruff, mypy, basedpyright, and Python quality hooks"
-            )
+            print("This includes: uv, ruff, mypy, basedpyright, and Python quality hooks")
             install_python = input("Install Python support? (Y/n): ").strip() or "Y"
             print("")
             print("")
 
         # Install Claude CodePro Files
         ui.print_section("Installing Claude CodePro Files")
+
+        # Clean standard rules directories (to remove old/deleted rules)
+        ui.print_status("Cleaning standard rules directories...")
+        standard_dirs = [
+            project_dir / ".claude" / "rules" / "standard" / "core",
+            project_dir / ".claude" / "rules" / "standard" / "extended",
+            project_dir / ".claude" / "rules" / "standard" / "workflow",
+        ]
+        for std_dir in standard_dirs:
+            if std_dir.exists():
+                import shutil
+
+                shutil.rmtree(std_dir)
+                std_dir.mkdir(parents=True, exist_ok=True)
+
         ui.print_status("Installing .claude files...")
 
         # Download .claude directory (update existing files, preserve settings.local.json and custom rules)
@@ -202,29 +215,18 @@ def main() -> None:
                 continue
 
             # Skip settings.local.json (will be generated from template)
-            if (
-                "settings.local.json" in file_path
-                and "settings.local.template.json" not in file_path
-            ):
+            if "settings.local.json" in file_path and "settings.local.template.json" not in file_path:
                 continue
 
             # Skip Python hook if Python not selected
-            if (
-                install_python.lower() not in ["y", "yes"]
-                and "file_checker_python.sh" in file_path
-            ):
+            if install_python.lower() not in ["y", "yes"] and "file_checker_python.sh" in file_path:
                 continue
 
             # Special handling for config.yaml to preserve custom rules
-            if (
-                "rules/config.yaml" in file_path
-                and (project_dir / ".claude" / "rules" / "config.yaml").exists()
-            ):
+            if "rules/config.yaml" in file_path and (project_dir / ".claude" / "rules" / "config.yaml").exists():
                 temp_config = temp_dir / "config.yaml"
                 if downloads.download_file(file_path, temp_config, config):
-                    files.merge_yaml_config(
-                        temp_config, project_dir / ".claude" / "rules" / "config.yaml"
-                    )
+                    files.merge_yaml_config(temp_config, project_dir / ".claude" / "rules" / "config.yaml")
                     file_count += 1
                     print("   ✓ config.yaml (merged with custom rules)")
                 continue
@@ -253,34 +255,74 @@ def main() -> None:
                 if not args.non_interactive:
                     ui.print_warning("settings.local.json already exists")
                     print("This file may contain new features in this version.")
-                    regen = input(
-                        "Regenerate settings.local.json from template? (y/N): "
-                    ).strip()
+                    regen = input("Regenerate settings.local.json from template? (y/N): ").strip()
                     if regen.lower() not in ["y", "yes"]:
                         ui.print_success("Kept existing settings.local.json")
                     else:
                         template_content = template_file.read_text()
-                        settings_content = template_content.replace(
-                            "{{PROJECT_DIR}}", str(project_dir)
-                        )
+                        settings_content = template_content.replace("{{PROJECT_DIR}}", str(project_dir))
                         settings_file.write_text(settings_content)
-                        ui.print_success(
-                            "Regenerated settings.local.json with absolute paths"
-                        )
+                        ui.print_success("Regenerated settings.local.json with absolute paths")
                 else:
-                    ui.print_success("Kept existing settings.local.json")
+                    # In non-interactive mode, check OVERWRITE_SETTINGS env var
+                    overwrite = os.getenv("OVERWRITE_SETTINGS", "N")
+                    if overwrite.upper() in ["Y", "YES"]:
+                        template_content = template_file.read_text()
+                        settings_content = template_content.replace("{{PROJECT_DIR}}", str(project_dir))
+                        settings_file.write_text(settings_content)
+                        ui.print_success("Regenerated settings.local.json with absolute paths")
+                    else:
+                        ui.print_success("Kept existing settings.local.json")
             else:
                 # First time installation - always generate
                 template_content = template_file.read_text()
-                settings_content = template_content.replace(
-                    "{{PROJECT_DIR}}", str(project_dir)
-                )
+                settings_content = template_content.replace("{{PROJECT_DIR}}", str(project_dir))
                 settings_file.write_text(settings_content)
                 ui.print_success("Generated settings.local.json with absolute paths")
         else:
-            ui.print_warning(
-                "settings.local.template.json not found, skipping generation"
-            )
+            ui.print_warning("settings.local.template.json not found, skipping generation")
+
+        # Remove Python hook from settings.local.json if Python not selected
+        if install_python.lower() not in ["y", "yes"] and settings_file.exists():
+            ui.print_status("Removing Python hook from settings.local.json...")
+
+            try:
+                settings_data = json.loads(settings_file.read_text())
+
+                # Remove Python hook from PostToolUse
+                if "hooks" in settings_data and "PostToolUse" in settings_data["hooks"]:
+                    for hook_group in settings_data["hooks"]["PostToolUse"]:
+                        if "hooks" in hook_group:
+                            hook_group["hooks"] = [
+                                h for h in hook_group["hooks"] if "file_checker_python.sh" not in h.get("command", "")
+                            ]
+
+                # Remove Python-related permissions
+                python_permissions = [
+                    "Bash(basedpyright:*)",
+                    "Bash(mypy:*)",
+                    "Bash(python tests:*)",
+                    "Bash(python:*)",
+                    "Bash(pyright:*)",
+                    "Bash(pytest:*)",
+                    "Bash(ruff check:*)",
+                    "Bash(ruff format:*)",
+                    "Bash(uv add:*)",
+                    "Bash(uv pip show:*)",
+                    "Bash(uv pip:*)",
+                    "Bash(uv run:*)",
+                ]
+                if "permissions" in settings_data and "allow" in settings_data["permissions"]:
+                    settings_data["permissions"]["allow"] = [
+                        p for p in settings_data["permissions"]["allow"] if p not in python_permissions
+                    ]
+
+                settings_file.write_text(json.dumps(settings_data, indent=2) + "\n")
+                ui.print_success("Configured settings.local.json without Python support")
+            except Exception as e:
+                ui.print_warning(
+                    f"Failed to remove Python settings: {e}. You may need to manually edit settings.local.json"
+                )
 
         # Make hooks executable
         hooks_dir = project_dir / ".claude" / "hooks"
@@ -302,18 +344,10 @@ def main() -> None:
 
         # Install MCP configurations
         files.merge_mcp_config(".mcp.json", project_dir / ".mcp.json", config, temp_dir)
-        files.merge_mcp_config(
-            ".mcp-funnel.json", project_dir / ".mcp-funnel.json", config, temp_dir
-        )
+        files.merge_mcp_config(".mcp-funnel.json", project_dir / ".mcp-funnel.json", config, temp_dir)
         print("")
 
         # Install scripts
-        (project_dir / "scripts" / "lib").mkdir(parents=True, exist_ok=True)
-        files.install_file(
-            "scripts/lib/setup-env.sh",
-            project_dir / "scripts" / "lib" / "setup-env.sh",
-            config,
-        )
         files.install_file(
             ".claude/rules/build.sh",
             project_dir / ".claude" / "rules" / "build.sh",
@@ -339,12 +373,8 @@ def main() -> None:
         # Environment Setup
         if args.skip_env or args.non_interactive:
             ui.print_section("Environment Setup")
-            ui.print_status(
-                "Skipping interactive environment setup (non-interactive mode)"
-            )
-            ui.print_warning(
-                "Make sure to set up .env file manually or via environment variables"
-            )
+            ui.print_status("Skipping interactive environment setup (non-interactive mode)")
+            ui.print_warning("Make sure to set up .env file manually or via environment variables")
             print("")
         else:
             ui.print_section("Environment Setup")
@@ -386,17 +416,11 @@ def main() -> None:
         if build_script.exists():
             ui.print_status("Building Claude Code commands and skills...")
             try:
-                import subprocess
-
-                subprocess.run(
-                    ["bash", str(build_script)], check=True, capture_output=True
-                )
+                subprocess.run(["bash", str(build_script)], check=True, capture_output=True)
                 ui.print_success("Built commands and skills")
             except subprocess.CalledProcessError:
                 ui.print_error("Failed to build commands and skills")
-                ui.print_warning(
-                    "You may need to run 'bash .claude/rules/build.sh' manually"
-                )
+                ui.print_warning("You may need to run 'bash .claude/rules/build.sh' manually")
         else:
             ui.print_warning("build.sh not found, skipping")
         print("")
@@ -413,9 +437,7 @@ def main() -> None:
             import shutil
 
             shutil.copy2(source_config, target_config)
-            ui.print_success(
-                "Installed statusline configuration to ~/.config/ccstatusline/settings.json"
-            )
+            ui.print_success("Installed statusline configuration to ~/.config/ccstatusline/settings.json")
         else:
             ui.print_warning("statusline.json not found in .claude directory, skipping")
         print("")
@@ -462,9 +484,7 @@ def main() -> None:
         print("")
         print(f"{ui.GREEN}{'━' * 70}{ui.NC}")
         print(f"{ui.GREEN}📚 Learn more: https://www.claude-code.pro{ui.NC}")
-        print(
-            f"{ui.GREEN}💬 Questions? https://github.com/maxritter/claude-codepro/issues{ui.NC}"
-        )
+        print(f"{ui.GREEN}💬 Questions? https://github.com/maxritter/claude-codepro/issues{ui.NC}")
         print(f"{ui.GREEN}{'━' * 70}{ui.NC}")
         print("")
 
