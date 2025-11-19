@@ -181,6 +181,18 @@ def install_qlty(project_dir: Path) -> None:
         os.environ["QLTY_INSTALL"] = str(qlty_install)
         os.environ["PATH"] = f"{qlty_bin}:{os.environ.get('PATH', '')}"
 
+        # Add to zshrc
+        zshrc = Path.home() / ".zshrc"
+        if zshrc.exists():
+            marker = "# qlty configuration"
+            if marker not in zshrc.read_text():
+                zsh_config = (
+                    f'\n{marker}\nexport QLTY_INSTALL="{qlty_install}"\nexport PATH="$QLTY_INSTALL/bin:$PATH"\n'
+                )
+                with open(zshrc, "a") as f:
+                    f.write(zsh_config)
+                ui.print_success("Added qlty to .zshrc")
+
         qlty_cmd = qlty_bin / "qlty"
         if qlty_cmd.exists():
             subprocess.run(

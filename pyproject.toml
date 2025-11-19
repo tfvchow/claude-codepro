@@ -4,7 +4,7 @@ version = "1.0.0"
 description = "Claude CodePro"
 requires-python = ">=3.13,<3.14"
 readme = "README.md"
-dependencies = ["ipykernel>=6.29.5", "jupyter>=1.1.1", "pyyaml>=6.0.2"]
+dependencies = ["pyyaml>=6.0.2"]
 
 [dependency-groups]
 dev = [

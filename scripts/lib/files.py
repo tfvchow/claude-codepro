@@ -171,14 +171,17 @@ def merge_yaml_config(
             import sys
 
             try:
-                uv_available = (
-                    subprocess.run(
-                        ["uv", "--version"],
-                        capture_output=True,
-                        check=False,
-                    ).returncode
-                    == 0
-                )
+                try:
+                    uv_available = (
+                        subprocess.run(
+                            ["uv", "--version"],
+                            capture_output=True,
+                            check=False,
+                        ).returncode
+                        == 0
+                    )
+                except FileNotFoundError:
+                    uv_available = False
 
                 if uv_available:
                     result = subprocess.run(
@@ -197,7 +200,14 @@ def merge_yaml_config(
 
                     if result.returncode != 0:
                         result = subprocess.run(
-                            [sys.executable, "-m", "pip", "install", "--user", "pyyaml"],
+                            [
+                                sys.executable,
+                                "-m",
+                                "pip",
+                                "install",
+                                "--user",
+                                "pyyaml",
+                            ],
                             capture_output=True,
                             text=True,
                             check=False,
@@ -219,7 +229,9 @@ def merge_yaml_config(
                         )
                         return True
                 else:
-                    error_msg = result.stderr.strip() if result.stderr else "Unknown error"
+                    error_msg = (
+                        result.stderr.strip() if result.stderr else "Unknown error"
+                    )
 
                     import shutil
 
@@ -246,7 +258,11 @@ def merge_yaml_config(
         if "commands" in new_config and "commands" in existing_config:
             for cmd_name, cmd_config in new_config["commands"].items():
                 if cmd_name in existing_config["commands"]:
-                    old_custom = existing_config["commands"][cmd_name].get("rules", {}).get("custom", [])
+                    old_custom = (
+                        existing_config["commands"][cmd_name]
+                        .get("rules", {})
+                        .get("custom", [])
+                    )
                     if "rules" not in cmd_config:
                         cmd_config["rules"] = {}
                     cmd_config["rules"]["custom"] = old_custom
