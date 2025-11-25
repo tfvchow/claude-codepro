@@ -115,7 +115,7 @@ class RuleBuilder:
 
         for command_name, command_config in config.get("commands", {}).items():
             description = command_config.get("description", "")
-            model = command_config.get("model", "sonnet")
+            model = command_config.get("model", "opus")
             inject_skills = command_config.get("inject_skills", False)
 
             rules_content = []

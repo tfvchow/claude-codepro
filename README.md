@@ -34,13 +34,13 @@ Stop vibe coding, start shipping systematically with Spec-Driven Development, TD
 ### 📋 Flexible Development Workflows via Slash Commands
 
 **Quick Development** (For fast fixes, refactoring, experiments):
-- `/quick` - Fast, focused development without spec-driven overhead → No mandatory TDD (Sonnet 4.5)
+- `/quick` - Fast, focused development without spec-driven overhead → No mandatory TDD (Opus 4.5)
 
 **Spec-Driven Workflow** (For complex features requiring planning and testing):
-- `/plan` - Based on your input asks the right questions → Detailed spec with exact code (Opus 4.1)
-- `/implement` - Execute spec with mandatory TDD → Auto-manages context when full (Sonnet 4.5)
-- `/remember` - Stores learnings in cross-session memory → Continue after /clear (Sonnet 4.5)
-- `/verify` - E2E spec verification with CodeRabbit AI review → All tests, quality, security (Sonnet 4.5)
+- `/plan` - Based on your input asks the right questions → Detailed spec with exact code (Opus 4.5)
+- `/implement` - Execute spec with mandatory TDD → Auto-manages context when full (Opus 4.5)
+- `/remember` - Stores learnings in cross-session memory → Continue after /clear (Opus 4.5)
+- `/verify` - E2E spec verification with CodeRabbit AI review → All tests, quality, security (Opus 4.5)
 
 ### 💡 Modular Rules System with Auto-Generated Commands & Skills
 - **Rules Builder** - Automatically assembles commands and skills from markdown rules on every `cc` startup

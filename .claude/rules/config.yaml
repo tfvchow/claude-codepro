@@ -18,7 +18,7 @@ commands:
 
   implement:
     description: Execute implementation plans in batches
-    model: sonnet
+    model: opus
     inject_skills: true
     rules:
       - implement
@@ -36,7 +36,7 @@ commands:
 
   verify:
     description: Run tests and fix issues end-to-end
-    model: sonnet
+    model: opus
     inject_skills: true
     rules:
       - verify
@@ -53,7 +53,7 @@ commands:
 
   quick:
     description: Fast, focused development without spec-driven workflow overhead
-    model: sonnet
+    model: opus
     inject_skills: true
     rules:
       - quick
@@ -69,6 +69,6 @@ commands:
 
   remember:
     description: Store learnings before clearing context
-    model: sonnet
+    model: opus
     rules:
       - remember
