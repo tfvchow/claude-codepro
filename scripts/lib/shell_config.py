@@ -72,47 +72,56 @@ def add_shell_alias(
         ui.print_success(f"Added alias '{alias_name}' to {shell_name}")
 
 
-def add_cc_alias(project_dir: Path) -> None:
+def _get_ccp_run_cmd() -> str:
+    """Get the command to run CCP (shared between shells)."""
+    return "nvm use 22 && python3 .claude/rules/build.py &>/dev/null && clear && dotenvx run claude"
+
+
+def add_cc_alias() -> None:
     """
     Add 'ccp' alias to all detected shells.
 
     Creates an alias that:
-    - Uses current directory if it's a CCP project
-    - Falls back to installed project directory otherwise
-    - Loads NVM, builds rules, starts Claude Code with dotenvx
-
-    Args:
-        project_dir: Fallback project directory path
+    1. If current dir is CCP project → use it
+    2. If in devcontainer (/workspaces exists) → find CCP project there
+    3. Otherwise → show error
     """
     alias_name = "ccp"
     ui.print_status(f"Configuring shell for NVM and '{alias_name}' alias...")
     home = Path.home()
+    run_cmd = _get_ccp_run_cmd()
 
-    # Bash/Zsh: Check if current dir is CCP project, otherwise use fallback
-    bash_alias = (
-        f"alias {alias_name}='"
-        f"if [ -f .claude/rules/build.py ]; then "
-        f"nvm use 22 && python3 .claude/rules/build.py &>/dev/null && clear && dotenvx run claude; "
-        f"else "
-        f'cd "{project_dir}" && nvm use 22 && python3 .claude/rules/build.py &>/dev/null && clear && dotenvx run claude; '
-        f"fi'"
-    )
+    # Bash/Zsh: Priority-based CCP detection
+    bash_alias = f"""alias {alias_name}='
+if [ -f .claude/rules/build.py ]; then
+  {run_cmd};
+elif [ -d /workspaces ]; then
+  ccp_dir=""; for d in /workspaces/*/; do [ -f "$d.claude/rules/build.py" ] && ccp_dir="$d" && break; done;
+  if [ -n "$ccp_dir" ]; then cd "$ccp_dir" && {run_cmd};
+  else echo "Error: No CCP project found in /workspaces"; fi;
+else
+  echo "Error: Not a Claude CodePro project"; echo "Please cd to a CCP-enabled project first.";
+fi'"""
 
     add_shell_alias(home / ".bashrc", bash_alias, ".bashrc", alias_name)
     add_shell_alias(home / ".zshrc", bash_alias, ".zshrc", alias_name)
 
     # Fish: Different syntax for conditionals
     fish_config = home / ".config" / "fish" / "config.fish"
-    fish_alias = (
-        f"alias {alias_name}='"
-        f"if test -f .claude/rules/build.py; "
-        f"nvm use 22; and python3 .claude/rules/build.py &>/dev/null; and clear; and dotenvx run claude; "
-        f"else; "
-        f'cd "{project_dir}"; and nvm use 22; and python3 .claude/rules/build.py &>/dev/null; and clear; and dotenvx run claude; '
-        f"end'"
-    )
+    fish_run_cmd = run_cmd.replace("&&", "; and")
+    fish_alias = f"""alias {alias_name}='
+if test -f .claude/rules/build.py
+  {fish_run_cmd}
+else if test -d /workspaces
+  set ccp_dir ""; for d in /workspaces/*/; test -f "$d.claude/rules/build.py"; and set ccp_dir "$d"; and break; end;
+  if test -n "$ccp_dir"; cd "$ccp_dir"; and {fish_run_cmd};
+  else; echo "Error: No CCP project found in /workspaces"; end
+else
+  echo "Error: Not a Claude CodePro project"; echo "Please cd to a CCP-enabled project first."
+end'"""
+
     add_shell_alias(fish_config, fish_alias, "config.fish", alias_name)
 
     print("")
     ui.print_success(f"Alias '{alias_name}' configured!")
-    print(f"   Run '{alias_name}' in any CCP project, or from anywhere to use this project")
+    print(f"   Run '{alias_name}' from any CCP project or devcontainer")

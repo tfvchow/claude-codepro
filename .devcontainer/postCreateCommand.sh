@@ -12,6 +12,28 @@ echo "Dev Container Post-Create Setup"
 echo "=================================================="
 echo ""
 
+# =============================================================================
+# Git Configuration (required for qlty)
+# =============================================================================
+
+# Check if git user.name is configured
+if ! git config --global user.name &>/dev/null; then
+    echo "Git requires your name and email for commits."
+    echo ""
+    read -p "Enter your name for git commits: " GIT_NAME
+    git config --global user.name "$GIT_NAME"
+    echo "✓ Git user.name set to: $GIT_NAME"
+fi
+
+# Check if git user.email is configured
+if ! git config --global user.email &>/dev/null; then
+    read -p "Enter your email for git commits: " GIT_EMAIL
+    git config --global user.email "$GIT_EMAIL"
+    echo "✓ Git user.email set to: $GIT_EMAIL"
+fi
+
+echo ""
+
 # Install zsh fzf
 echo "Configuring zsh with fzf..."
 echo -e "\nsource <(fzf --zsh)" >>~/.zshrc

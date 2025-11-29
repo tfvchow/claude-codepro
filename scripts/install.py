@@ -466,7 +466,7 @@ def main() -> None:
         print("")
 
         ui.print_section("Configuring Shell")
-        shell_config.add_cc_alias(project_dir)
+        shell_config.add_cc_alias()
 
         ui.print_section("🎉 Installation Complete!")
 
