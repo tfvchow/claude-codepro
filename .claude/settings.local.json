@@ -2,7 +2,7 @@
   "env": {
     "ANTHROPIC_CUSTOM_HEADERS": "anthropic-beta: interleaved-thinking-2025-05-14",
     "MAX_MCP_OUTPUT_TOKENS": "10000",
-    "MAX_THINKING_TOKENS": "128000",
+    "MAX_THINKING_TOKENS": "63999",
     "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "64000",
     "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "true",
     "DISABLE_TELEMETRY": "true"
