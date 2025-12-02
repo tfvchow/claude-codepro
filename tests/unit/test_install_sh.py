@@ -13,11 +13,9 @@ def test_install_sh_runs_install_command():
     # The script must run the binary with 'install' command
     assert "install" in content, "install.sh must pass 'install' command to binary"
 
-    # Check that exec lines include 'install' command
-    lines = content.split("\n")
-    exec_lines = [line for line in lines if line.strip().startswith("exec")]
-    assert len(exec_lines) >= 1, "Should have at least one exec line"
-    assert all("install" in line for line in exec_lines), "All exec lines must include 'install'"
+    # Check that the script runs INSTALL_PATH with 'install' command
+    assert "$INSTALL_PATH" in content, "Script must reference INSTALL_PATH variable"
+    assert 'install "$@"' in content or "install --non-interactive" in content, "Script must pass install command"
 
 
 def test_install_sh_is_executable_bash_script():
