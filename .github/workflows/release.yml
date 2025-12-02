@@ -151,7 +151,7 @@ jobs:
             python:3.12-slim-bullseye \
             bash -c "
               apt-get update && apt-get install -y binutils && \
-              pip install pyinstaller && \
+              pip install pyinstaller httpx && \
               python build.py
             "
 
@@ -202,7 +202,7 @@ jobs:
         working-directory: premium
         run: |
           python -m pip install --upgrade pip
-          python -m pip install pyinstaller
+          python -m pip install pyinstaller httpx
           python build.py
 
       - name: Ad-hoc code sign
