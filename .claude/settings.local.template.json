@@ -1,0 +1,109 @@
+{
+  "env": {
+    "MAX_MCP_OUTPUT_TOKENS": "10000",
+    "MAX_THINKING_TOKENS": "63999",
+    "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "64000",
+    "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "true",
+    "DISABLE_TELEMETRY": "true"
+  },
+  "permissions": {
+    "allow": [
+      "Bash",
+      "Bash(basedpyright:*)",
+      "Bash(cp:*)",
+      "Bash(find:*)",
+      "Bash(grep:*)",
+      "Bash(ls:*)",
+      "Bash(mkdir:*)",
+      "Bash(mv:*)",
+      "Bash(mypy:*)",
+      "Bash(python tests:*)",
+      "Bash(python:*)",
+      "Bash(pyright:*)",
+      "Bash(pytest:*)",
+      "Bash(rg:*)",
+      "Bash(rm:*)",
+      "Bash(ruff check:*)",
+      "Bash(ruff format:*)",
+      "Bash(uv add:*)",
+      "Bash(uv pip show:*)",
+      "Bash(uv pip:*)",
+      "Bash(uv run:*)",
+      "Edit",
+      "Glob",
+      "Grep",
+      "NotebookEdit",
+      "Read",
+      "TodoWrite",
+      "WebFetch",
+      "WebSearch",
+      "Write",
+      "mcp__ide__getDiagnostics",
+      "mcp__exa__web_search_exa",
+      "mcp__exa__get_code_context_exa",
+      "mcp__exa__crawling_exa",
+      "mcp__claude-context__index_codebase",
+      "mcp__claude-context__get_indexing_status",
+      "mcp__claude-context__search_code",
+      "mcp__mcp-funnel__discover_tools_by_words",
+      "mcp__mcp-funnel__get_tool_schema",
+      "mcp__mcp-funnel__bridge_tool_request",
+      "mcp__cipher__ask_cipher",
+      "mcp__mcp-funnel__load_toolset",
+      "SlashCommand(/remember:*)",
+      "SlashCommand(/implement:*)",
+      "SlashCommand(/plan:*)",
+      "SlashCommand(/verify:*)",
+      "SlashCommand(/setup:*)"
+    ],
+    "deny": []
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": ["exa", "claude-context", "cipher", "mcp-funnel"],
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 {{PROJECT_DIR}}/.claude/hooks/tdd_enforcer.py"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 {{PROJECT_DIR}}/.claude/hooks/file_checker_qlty.py"
+          },
+          {
+            "type": "command",
+            "command": "python3 {{PROJECT_DIR}}/.claude/hooks/file_checker_python.py"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash|Read|Grep|Glob",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 {{PROJECT_DIR}}/.claude/hooks/context_monitor.py"
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "npx -y ccstatusline@latest",
+    "padding": 0
+  },
+  "model": "opus",
+  "outputStyle": "default",
+  "spinnerTipsEnabled": false,
+  "alwaysThinkingEnabled": true
+}

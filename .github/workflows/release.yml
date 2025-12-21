@@ -1,0 +1,165 @@
+---
+name: Release
+
+"on":
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  quality:
+    name: QLTY Code Quality Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install QLTY
+        run: curl -s https://qlty.sh | sh
+
+      - name: Run QLTY checks
+        run: |
+          export QLTY_INSTALL="$HOME/.qlty"
+          export PATH="$QLTY_INSTALL/bin:$PATH"
+          "$HOME/.qlty/bin/qlty" check --install-only
+          "$HOME/.qlty/bin/qlty" check
+
+  build-installer-linux:
+    name: Build Installer Linux ${{ matrix.arch }}
+    runs-on: ${{ matrix.runner }}
+    needs: quality
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            runner: ubuntu-latest
+            artifact: ccp-installer-linux-x86_64
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+            artifact: ccp-installer-linux-arm64
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Build binary
+        run: |
+          # Use Python 3.12 with Debian Bullseye (GLIBC 2.31)
+          docker run --rm \
+            -v ${{ github.workspace }}:/workspace \
+            -w /workspace \
+            python:3.12-slim-bullseye \
+            bash -c "
+              apt-get update && apt-get install -y binutils && \
+              pip install pyinstaller rich httpx typer platformdirs && \
+              cd installer && python build.py
+            "
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v5
+        with:
+          name: ${{ matrix.artifact }}
+          path: installer/dist/${{ matrix.artifact }}
+          retention-days: 7
+
+  python-tests:
+    name: Python Unit & E2E Tests
+    runs-on: ubuntu-latest
+    needs: quality
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install Python dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          python3 -m pip install pytest pytest-cov
+          python3 -m pip install rich httpx typer platformdirs
+
+      - name: Run unit tests with coverage
+        run: |
+          python3 -m pytest tests/unit/ -v \
+            --cov=installer \
+            --cov-report=term --cov-report=xml
+
+      - name: Run E2E tests
+        run: |
+          python3 -m pytest tests/e2e/ -v
+
+      - name: Upload test logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: e2e-test-logs-release
+          path: |
+            /tmp/test-*/install.log
+            /tmp/test-*/.claude/
+          retention-days: 7
+          if-no-files-found: ignore
+
+  release:
+    name: Semantic Release
+    runs-on: ubuntu-latest
+    needs:
+      - python-tests
+      - build-installer-linux
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Download installer artifacts
+        uses: actions/download-artifact@v6
+        with:
+          path: installer-binaries
+
+      - name: Prepare release binaries
+        run: |
+          mkdir -p release-assets
+          find installer-binaries -type f -name 'ccp-installer-*' \
+            -exec cp {} release-assets/ \;
+          ls -la release-assets/
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+
+      - name: Install dependencies
+        run: >
+          npm install -g semantic-release@latest
+          @semantic-release/git@latest
+          @semantic-release/changelog@latest
+          @semantic-release/exec@latest
+
+      - name: Run semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release
+
+      - name: Upload binaries to release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [ -n "$TAG" ] && [ -d "release-assets" ]; then
+            for f in release-assets/*; do
+              gh release upload "$TAG" "$f" --clobber || true
+            done
+          fi

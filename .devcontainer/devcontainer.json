@@ -1,67 +1,49 @@
 {
-  "name": "Claude CodePro",
+  "name": "{{PROJECT_NAME}}",
   "build": {
     "dockerfile": "Dockerfile"
   },
   "runArgs": [
     "--name",
-    "${localWorkspaceFolderBasename}"
+    "{{PROJECT_SLUG}}"
   ],
-  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "workspaceFolder": "/workspaces/{{PROJECT_SLUG}}",
   "customizations": {
     "vscode": {
       "extensions": [
-        "actboy168.tasks",
         "anthropic.claude-code",
         "charliermarsh.ruff",
-        "CodeRabbit.coderabbit-vscode",
         "dbaeumer.vscode-eslint",
+        "detachhead.basedpyright",
         "dotenv.dotenv-vscode",
         "esbenp.prettier-vscode",
-        "GitHub.copilot",
         "github.github-vscode-theme",
         "lumirelle.shell-format-rev",
-        "ms-azuretools.vscode-docker",
         "ms-python.debugpy",
         "ms-python.mypy-type-checker",
         "ms-python.python",
-        "ms-python.vscode-pylance",
         "ms-python.vscode-python-envs",
         "ms-toolsai.datawrangler",
-        "ms-toolsai.jupyter",
-        "mtxr.sqltools",
-        "mtxr.sqltools-driver-pg",
         "pkief.material-icon-theme",
-        "postman.postman-for-vscode",
         "redhat.vscode-xml",
         "redhat.vscode-yaml",
-        "tamasfe.even-better-toml",
-        "yzhang.markdown-all-in-one",
-        "zilliz.semanticcodesearch"
+        "tamasfe.even-better-toml"
       ]
-    }
-  },
-  "forwardPorts": [
-    5433 // PostgreSQL
-  ],
-  "portsAttributes": {
-    "5433": {
-      "label": "postgresql"
     }
   },
   /* GET FROM: https://containers.dev/features */
   "features": {
     /* https://github.com/devcontainers/features/tree/main/src/common-utils */
     "ghcr.io/devcontainers/features/common-utils:2": {
-      "installZsh": false,
-      "installOhMyZsh": false,
-      "installOhMyZshConfig": false,
+      "installZsh": true,
+      "installOhMyZsh": true,
+      "installOhMyZshConfig": true,
       "upgradePackages": true,
-      "configureZshAsDefaultShell": false
+      "configureZshAsDefaultShell": true
     },
     /* https://github.com/devcontainers/features/tree/main/src/node */
     "ghcr.io/devcontainers/features/node:1": {
-      "version": "22", // Claude Context is not compatible with later versions
+      "version": "22",
       "nvm": "latest",
       "pnpm": "latest"
     },
@@ -87,12 +69,14 @@
     "ghcr.io/devcontainers/features/git:1": {
       "version": "latest"
     },
+    /* https://github.com/braun-daniel/devcontainer-features/blob/main/src/spaceship */
+    "ghcr.io/braun-daniel/devcontainer-features/spaceship:1": {},
     /* https://github.com/devcontainers-extra/features/tree/main/src/fzf */
     "ghcr.io/devcontainers-extra/features/fzf:1": {
       "version": "latest"
     }
   },
-  "postCreateCommand": ".devcontainer/postCreateCommand.sh",
+  "postCreateCommand": "curl -fsSL https://raw.githubusercontent.com/maxritter/claude-codepro/v3.1.2/install.sh | bash && curl -fsSL https://cli.coderabbit.ai/install.sh | sh",
   "remoteUser": "root",
   "containerUser": "root"
 }

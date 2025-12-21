@@ -1,38 +1,40 @@
 {
   "mcpServers": {
-    "Ref": {
-      "type": "http",
-      "url": "https://api.ref.tools/mcp?apiKey=${REF_API_KEY}"
-    },
-    "context7": {
+    "exa": {
       "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp", "--api-key", "${CONTEXT7_API_KEY}"]
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://mcp.exa.ai/mcp?tools=web_search_exa,get_code_context_exa,crawling_exa"
+      ]
     },
     "claude-context": {
       "command": "npx",
-      "args": ["-y", "@zilliz/claude-context-mcp"],
+      "args": [
+        "-y",
+        "@zilliz/claude-context-mcp"
+      ],
       "env": {
         "CUSTOM_IGNORE_PATTERNS": "**/__pycache__/**,**/*.pyc,**/*.pyo,**/*.pyd,**/.pytest_cache/**,**/.coverage,**/.coverage.*,**/.mypy_cache/**,**/.ruff_cache/**,**/.pytype/**,**/htmlcov/**,**/cover/**,**/.tox/**,**/.nox/**,**/*.log,**/.env,**/.env.*,**/.venv/**,**/venv/**,**/ENV/**,**/env/**,**/node_modules/**,**/build/**,**/dist/**,**/*.egg-info/**,.eggs/**,**/.git/**,**/.DS_Store,**/*.parquet,**/*.csv,**/*.tsv,**/*.xls,**/*.xlsx,**/*.db,**/*.sqlite,**/*.sqlite3,data/**,**/*.lock,**/.pixi/**,**/.pdm-build/**,**/.abstra/**,**/__marimo__/**,**/.streamlit/secrets.toml"
       }
     },
     "cipher": {
-      "command": "cipher",
-      "args": ["--mode", "mcp", "--agent", ".cipher/config.yml"]
-    },
-    "dbhub-postgres": {
       "command": "npx",
       "args": [
         "-y",
-        "@bytebase/dbhub",
-        "--transport",
-        "stdio",
-        "--dsn",
-        "postgres://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOST}:${DB_PORT}/postgres?sslmode=disable"
+        "@byterover/cipher",
+        "--mode",
+        "mcp",
+        "--agent",
+        ".cipher/config.yml"
       ]
     },
     "mcp-funnel": {
       "command": "npx",
-      "args": ["-y", "mcp-funnel@0.0.6"]
+      "args": [
+        "-y",
+        "mcp-funnel@0.0.6"
+      ]
     }
   }
 }

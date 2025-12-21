@@ -2,100 +2,93 @@
 
 <img src="docs/img/logo.png" alt="Claude CodePro" width="400">
 
-### A Professional System for Building Quality Code
+### 🛠️ Professional Development Environment for Claude Code (CC)
 
-Stop vibe coding, start shipping systematically with Spec-Driven Development, TDD, and automated workflows.
+Start shipping systematically with Spec-Driven Development, Skills, TDD, Semantic Search, Persistent Memory, Context Management, Quality Hooks, Modular Rules System, and much more 🚀
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Claude Code](https://img.shields.io/badge/Claude_Code-Optimized-blue)](https://claude.ai)
+[![Modular Rules](https://img.shields.io/badge/Modular_Rules-Integrated-brightgreen.svg)](https://code.claude.com/docs/en/memory#modular-rules-with-claude/rules/)
+![Opus 4.5](https://img.shields.io/badge/Opus_4.5-Compatible-purple.svg)
 ![Spec-Driven](https://img.shields.io/badge/Spec-Driven-orange.svg)
 ![TDD](https://img.shields.io/badge/TDD-Test--Driven--Development-green.svg)
-[![PRs Welcome](https://img.shields.io/badge/PRs-Welcome-brightgreen.svg)](http://makeapullrequest.com)
 
----
-
-#### 🆕 What's New in v2.1.0
-
-- **Automated Rules Builder** - Modular system that auto-generates Slash Commands and Skills
-- **`/quick` Command** - Alternative to spec-driven workflow for fast fixes and refactoring
-
----
-
-#### [⭐ Star this repo](https://github.com/maxritter/claude-codepro) • [🚀 Releases](https://github.com/maxritter/claude-codepro/releases) • [🎓 Join the Academy](https://www.claude-code.pro)
+#### [⭐ Star this repo](https://github.com/maxritter/claude-codepro)
 
 </div>
 
 ---
 
-## 📦 What's Inside
+## 🚀 Getting Started
 
-<img src="docs/img/ide-screenshot.png" alt="IDE Screenshot" width="600">
+### Prerequisites
 
-### 📋 Flexible Development Workflows via Slash Commands
+- **Container Runtime** - [Docker Desktop](https://www.docker.com/products/docker-desktop) or [OrbStack](https://orbstack.dev/) (macOS)
+- **IDE** - [VS Code](https://code.visualstudio.com/), [Cursor](https://cursor.sh/), [Windsurf](https://windsurf.com/editor), or [Antigravity](https://antigravity.google/)
+- **Dev Containers extension** - [Install from Marketplace](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)
 
-**Quick Development** (For fast fixes, refactoring, experiments):
-- `/quick` - Fast, focused development without spec-driven overhead → No mandatory TDD (Opus 4.5)
+> **Note:** Claude CodePro runs inside a Dev Container for complete isolation, consistent tooling, and cross-platform compatibility.
 
-**Spec-Driven Workflow** (For complex features requiring planning and testing):
-- `/plan` - Based on your input asks the right questions → Detailed spec with exact code (Opus 4.5)
-- `/implement` - Execute spec with mandatory TDD → Auto-manages context when full (Opus 4.5)
-- `/remember` - Stores learnings in cross-session memory → Continue after /clear (Opus 4.5)
-- `/verify` - E2E spec verification with CodeRabbit AI review → All tests, quality, security (Opus 4.5)
+### Installation
 
-### 💡 Modular Rules System with Auto-Generated Commands & Skills
-- **Rules Builder** - Automatically assembles commands and skills from markdown rules on every `cc` startup
-- **Core Rules** - Coding standards, TDD enforcement, error handling, validation, context management
-- **Extended Rules** - Domain-specific rules auto-converted to skills (@backend-api, @frontend-components, etc.)
-- **Workflow Rules** - Command-specific behavior for /plan, /implement, /verify, /quick, /remember
-- **Flexible Customization** - Edit `.claude/rules/config.yaml` to adjust which rules apply to which commands
+Claude CodePro can be installed into any existing project:
 
-### 🔌 Enhanced Context and Capabilities via MCP Servers
-- **Cipher & Claude Context** - Cross-session memory and semantic code search for optimal context
-- **Context7 & Ref** - Up-to-date library documentation with limited context blur
-- **DBHub & FireCrawl** - Database access and web scraping for dynamic data retrieval
-- **MCP Funnel** - Allows to plug-in more MCP servers as needed without wasting context
+1. Open your project folder in your IDE
+2. Run this command in the terminal:
 
-### 🛠️ Testing and Quality via Automated Tool Installation
-- **CodeRabbit** - AI-powered code review for quality and security
-- **Qlty** - Automated code quality hooks for all programming languages
-- **Newman** - API end-to-end testing with Postman collections
-- **uv, ruff, mypy, basedpyright** - Python linter, formatter, and type checker
+```bash
+curl -fsSL https://raw.githubusercontent.com/maxritter/claude-codepro/v3.1.2/install.sh | bash
+```
 
-### 🏗️ Automated Dev Container Setup (VS Code / Cursor / Windsurf)
-- **Integrated Features** - Zsh, Node.js, Docker-in-Docker, uv, ruff, basedpyright, git, fzf
-- **IDE Extensions** - Python, Docker, SQL, testing, formatting, and development tools
-- **CLI Tools** - qlty, Claude Code, Statusline, dotenvx, CodeRabbit, Cipher, Newman
-- **Local Database** - Local PostgreSQL instance on port 5433 for development and testing
+3. Reopen in Container: `Cmd+Shift+P` → "Dev Containers: Reopen in Container"
+4. Installation completes automatically inside the container
+
+> **Cursor, Windsurf, Antigravity users:** These IDEs don't auto-execute `postCreateCommand`. After the container starts, run the install command from step 2 again.
 
 ---
 
-## 🚀 Getting Started
+## 📦 What's Inside
 
-### 📋 Prerequisites
+### 📋 Spec-Driven Workflow via Slash Commands
 
-- **[Docker Desktop](https://www.docker.com/products/docker-desktop/)** or **[OrbStack](https://orbstack.dev/download)**
-- **[VS Code](https://code.visualstudio.com/)** or **[Cursor](https://cursor.com/)** or **[Windsurf](https://windsurf.dev/)**
-- **[Dev Containers Extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.remote-containers)**
-- **Optional**: **[Warp](https://www.warp.dev/)** for the best terminal experience
+- `/setup` - Initialize project context, semantic search indexing, and persistent memory
+- `/plan` - Based on your input asks the right questions → Detailed spec with exact code
+- `/implement` - Execute spec with mandatory TDD → Auto-manages context when full
+- `/verify` - End-to-end spec verification → All tests, quality, security
+- `/remember` - Stores learnings in cross-session memory → Continue after /clear
 
-### 📥 Installation
+### 💡 Modular Rules System
 
-1. Clone this repository: `git clone https://github.com/maxritter/claude-codepro.git`
-2. Copy `.env.codepro.template` to `.env.codepro` and add your credentials and API keys
-```bash
-cp .env.codepro.template .env.codepro
-vim .env.codepro
-```
-3. Open folder in VS Code, click on the button on the bottom-left: `Reopen in Container` or open the command pallette via `Ctrl + Shift + P` and then use `> Dev Containers: Reopen in Container`
-4. Wait for automatic build to finish, this can take a couple of minutes (feel free to watch the logs in `Terminal`)
-<img src="docs/img/ide-setup-finish.png" alt="Setup finish Screenshot" width="600">
-5. Run `cc` (which is an alias we created) in the Terminal to finish CC Setup, `cr` to finish CodeRabbit setup
-```bash
-# alias to spawn claude code with loaded environment varaibles
-cc
-# code rabbit cmd line tool and setup
-cr
-```
+Built on [Claude Code's modular rules](https://code.claude.com/docs/en/memory#modular-rules-with-claude/rules/) - rules are loaded automatically as project memory.
+
+- **Auto Loading** - Claude Code automatically loads all `.claude/rules/*.md` files as project memory
+- **Standard Rules** - Best-Practices for TDD, Context Management, etc. in `.claude/rules/standard/`
+- **Custom Rules** - Project-specific rules in `.claude/rules/custom/` (never touched by updates)
+- **Commands** - Workflow-specific modes: /plan, /implement, /verify, /remember, /setup
+- **Skills** - Domain-specific @-referenceable guides (e.g., @backend-python-standards)
+
+### 🔌 Enhanced Context and Capabilities via MCP Servers
+
+- **Cipher** - Cross-session memory for persistent knowledge and learnings stored in Vector DB
+- **Claude Context** - Semantic code search for optimal codebase context retrieval
+- **Exa** - AI-powered web search, code context retrieval, and URL content extraction
+- **MCP Funnel** - Allows to plug-in more MCP servers as needed without wasting context
+
+### 🛠️ Intelligent Hooks for Quality, Standards and Context
+
+- **Qlty Quality** - Post-edit hook for automated formatting and code checking for all languages
+- **Python Quality** - Post-edit hook for uv, ruff, mypy, basedpyright linting and type checking (optional)
+- **Rules Supervisor** - Stop hook that analyzes `/implement` sessions using Gemini AI
+- **TDD Enforcer** - Pre-edit hook that warns when modifying code without failing tests first
+- **Context Monitor** - Post-tool hook that warns at 85%/95% context usage
+
+### 🏗️ One-Command Installation
+
+- **Global Tools** - Python tools, qlty, Claude Code, dotenvx installed globally
+- **Dev Container Required** - Isolated Linux environment with pre-configured tools and extensions
+- **Automated Setup Script** - Installs and configures everything in one command
+- **Shell Integration** - Auto-configures bash and zsh with `ccp` alias
+- **IDE Compatible** - Works with VS Code, Cursor, Windsurf or Antigravity
 
 ---
 
@@ -103,125 +96,55 @@ cr
 
 ### ⚙️ Configuration
 
-1. Open Claude Code in the IDE Terminal, Extension or an external Terminal like Warp with the `cc` command
+1. Open Claude Code in the IDE Terminal, Extension or an external Terminal with the `ccp` command
 
-2. In CC, run `/config` to set auto-connect to IDE to true and set `Auto-compact=false` for best experience
-<img src="docs/img/ide-setup-config.png" alt="Setup config Screenshot" width="600">
+2. In CC, run `/config` to set `Auto-connect to IDE=true` and set `Auto-compact=false` for best experience
+   <img src="docs/img/ide-setup-config.png" alt="Setup config Screenshot" width="600">
 
 3. In CC, run `/ide` to connect to VS Code diagnostics and make sure all MCP servers for `/mcp` are online
-<img src="docs/img/ide-setup-mcp.png" alt="Setup mcp Screenshot" width="600">
+   <img src="docs/img/ide-setup-mcp.png" alt="Setup mcp Screenshot" width="600">
 
 4. In CC, run `/context` to verify context looks similar to this screenshot with less than 20% used
-<img src="docs/img/ide-setup-context.png" alt="Setup context Screenshot" width="600">
-
-5. In VS Code, click `START` in the lower bar of the IDE to start a split terminal and monitor CC usage with `/usage`
-<img src="docs/img/ide-setup-start.png" alt="Start command Screenshot" width="600">
+   <img src="docs/img/ide-setup-context.png" alt="Setup context Screenshot" width="600">
 
 ### 👣 First Steps
 
-**For Quick Changes:**
-- Use `/quick` - Fast development for fixes, refactoring, or experiments without spec overhead
-- TDD not enforced, but best practices still apply via core rules and auto-injected skills
-
-**For Complex Features (Spec-Driven & TDD):**
 - Start with `/plan` - Provide your input and it will ask clarifying questions to create a spec
 - Use `/implement` to execute the spec with automatic TDD, best practices and context management
 - When context fills, `/remember` automatically updates your plan and stores learnings
-- After spec completion, run `/verify` to run CodeRabbit AI review, all tests, and quality checks
+- After spec completion, run `/verify` to run end-to-end review, all tests, and quality checks
 
-### 🎯 Rules Builder
-The system uses a modular rules-based architecture that automatically generates slash commands and skills:
+### 🎯 Customizing Rules
 
-- `.claude/rules/core/` - Fundamental rules injected into all commands
-- `.claude/rules/workflow/` - Command-specific behavior (plan.md, implement.md, verify.md, quick.md, remember.md)
-- `.claude/rules/extended/` - Domain-specific rules auto-converted to individual skills
-- `.claude/rules/config.yaml` - Defines which rules are included in which commands
-- `.claude/rules/builder.py` - Assembles markdown rules into commands and skills
+Claude CodePro uses [Claude Code's modular rules](https://code.claude.com/docs/en/memory#modular-rules-with-claude/rules/):
 
-**Auto-Rebuild:** Commands and skills are automatically regenerated on every `cc` startup, making customization seamless.
+- **Standard Rules** in `.claude/rules/standard/` - Updated on install, don't modify
+- **Custom Rules** in `.claude/rules/custom/` - Your project-specific rules, never touched by updates
+- **Path-Specific Rules** - Use YAML frontmatter with `paths:` to scope rules to specific files
 
-### 🗄️ Vector DB Collection Isolation
+Add custom rules by creating `.md` files in `.claude/rules/custom/`. You can also use path-specific rules:
 
-**Important:** Claude CodePro uses Vector DB (Zilliz Cloud) for two purposes:
-- **Cipher Memory** - Stores learnings, decisions, and context via `/remember`
-- **Claude Context** - Indexes your codebase for semantic search
-
-**Automatic Project Isolation:**
-- **Cipher** uses project-specific collections: `<project-folder>_knowledge` (auto-derived from folder name)
-- **Claude Context** auto-generates unique collections per codebase path
-- **Reflection Memory** shared across all your projects to learn your development style
-
-**Configuration in `.env.codepro`:**
-```bash
-# Automatically uses project folder name
-VECTOR_STORE_COLLECTION="$(basename $PWD)_knowledge"
-
-# Shared across all your projects
-REFLECTION_VECTOR_STORE_COLLECTION="reflection"
+```yaml
+---
+paths: src/**/*.py
+---
+# Python-specific rules for this project
 ```
-
-This prevents memory mixing when working on multiple projects. Each project maintains isolated knowledge while reflection memory learns your patterns across all projects.
-
-## ⚖️ What Makes This Different
-
-**Compared to Other Spec-Driven Frameworks (SpecKit, AgentOS, OpenSpec):**
-
-- 💾 **Persistent Memory** - Cross-session memory maintains knowledge between resets
-- ⚡ **Token-Optimized** - No tokens wasted during too complex planning, just works
-- ✅ **Production-Grade** - Actively used in client and enterprise projects
-- 📝 **Enforced TDD** - Code written before tests gets deleted automatically
-- 💯 **Real Verification** - Must show actual outputs based on tests, not assumptions
-- 🛠️ **Complete Ecosystem** - Skills, MCP servers, testing tools are integrated and configured
-- 📦 **Works Immediately** - Pre-configured automated setup with everything you need
-
----
-
-## 👥 Who This Is For
-
-- **Professional Developers** - Shipping to production with quality standards
-- **Solo Builders** - Managing complex features without losing context
-- **Engineering Teams** - Ensuring consistent TDD and code quality
-- **Frustrated Coders** - Tired of half-tested, "should work" implementations
-
----
-
-## 🎓 Claude CodePro Academy Coming Soon!
-
-If you want to dive deeper into the setup and advanced usage of Claude CodePro, check out the upcoming  academy that starts with 10 comprehensive modules where we do a deep-dive into all important topics:
-
-### ➡️ [www.claude-code.pro](https://www.claude-code.pro)
-
----
-
-## 🤝 Contributing
-
-Contributions welcome: custom skills, MCP integrations, workflow improvements, bug reports.
 
 ---
 
 ## 🙏 Acknowledgments
 
-- **[astral-sh/uv](https://github.com/astral-sh/uv)** - Fast Python package manager
-- **[astral-sh/ruff](https://github.com/astral-sh/ruff)** - Fast Python linter and formatter
-- **[DetachHead/basedpyright](https://github.com/DetachHead/basedpyright)** - Enhanced Python type checker
-- **[python/mypy](https://github.com/python/mypy)** - Static type checker for Python
-- **[dotenvx/dotenvx](https://github.com/dotenvx/dotenvx)** - Environment variable management
-- **[postmanlabs/newman](https://github.com/postmanlabs/newman)** - End-to-End API testing
-- **[pytest-dev/pytest](https://github.com/pytest-dev/pytest)** - Python testing framework
 - **[qltysh/qlty](https://github.com/qltysh/qlty)** - Code quality automation
 - **[obra/superpowers](https://github.com/obra/superpowers)** - CC Skills inspiration
 - **[buildermethods/agent-os](https://github.com/buildermethods/agent-os)** - CC Spec-Driven inspiration
 - **[campfirein/cipher](https://github.com/campfirein/cipher)** - CC Cross-session memory
 - **[zilliztech/claude-context](https://github.com/zilliztech/claude-context)** - CC Semantic code search
-- **[hagan/claudia-statusline](https://github.com/hagan/claudia-statusline)** - CC Status line integration
-- **[upstash/context7](https://github.com/upstash/context7)** - MCP Library documentation
-- **[ref-tools/ref-tools-mcp](https://github.com/ref-tools/ref-tools-mcp)** - MCP Documentation search
-- **[mendableai/firecrawl-mcp](https://github.com/mendableai/firecrawl)** - MCP Web scraping
-- **[bytebase/dbhub](https://github.com/bytebase/dbhub)** - MCP PostgreSQL connectivity
+- **[sirmalloc/ccstatusline](https://github.com/sirmalloc/ccstatusline)** - CC Status line integration
+- **[exa-labs/exa-mcp-server](https://github.com/exa-labs/exa-mcp-server)** - AI-powered web search and code context
 - **[chris-schra/mcp-funnel](https://github.com/chris-schra/mcp-funnel)** - MCP Tool filtering
-
----
-
-Made with ❤️ by [Max Ritter](https://www.maxritter.net)
-
-[🌐 claude-code.pro](https://www.claude-code.pro)
+- **[astral-sh/uv](https://github.com/astral-sh/uv)** - Fast Python package manager
+- **[astral-sh/ruff](https://github.com/astral-sh/ruff)** - Fast Python linter and formatter
+- **[DetachHead/basedpyright](https://github.com/DetachHead/basedpyright)** - Enhanced Python type checker
+- **[python/mypy](https://github.com/python/mypy)** - Static type checker for Python
+- **[dotenvx/dotenvx](https://github.com/dotenvx/dotenvx)** - Automatic .env loading for Claude Code
