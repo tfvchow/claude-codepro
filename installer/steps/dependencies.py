@@ -193,7 +193,7 @@ def install_claude_mem() -> bool:
 
 
 MILVUS_COMPOSE_URL = (
-    "https://raw.githubusercontent.com/maxritter/claude-codepro/main/.claude/scripts/milvus/docker-compose.yml"
+    "https://raw.githubusercontent.com/tfvchow/claude-codepro/main/.claude/scripts/milvus/docker-compose.yml"
 )
 MILVUS_COMPOSE_LOCAL_PATH = ".claude/scripts/milvus/docker-compose.yml"
 
