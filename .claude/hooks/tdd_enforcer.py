@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""TDD enforcer - warns when implementation code is modified without failing tests."""
+"""TDD enforcer - shows failing tests and reminds about TDD workflow."""
 
 from __future__ import annotations
 
@@ -10,10 +10,12 @@ from pathlib import Path
 
 YELLOW = "\033[0;33m"
 CYAN = "\033[0;36m"
+GREEN = "\033[0;32m"
 NC = "\033[0m"
 
 OVERRIDE_TIMEOUT = 60
 WARNED_CACHE_FILE = Path("/tmp/.tdd_enforcer_warned.json")
+MAX_FAILING_TESTS_TO_SHOW = 5
 
 EXCLUDED_EXTENSIONS = [
     ".md",
@@ -134,19 +136,19 @@ def is_test_file(file_path: str) -> bool:
     return False
 
 
-def has_failing_python_tests(project_dir: str) -> bool:
-    """Check if there are failing tests in pytest cache."""
+def get_failing_python_tests(project_dir: str) -> list[str]:
+    """Get list of failing tests from pytest cache."""
     cache_file = Path(project_dir) / ".pytest_cache" / "v" / "cache" / "lastfailed"
 
     if not cache_file.exists():
-        return False
+        return []
 
     try:
         with cache_file.open() as f:
             lastfailed = json.load(f)
-            return bool(lastfailed)
+            return list(lastfailed.keys()) if lastfailed else []
     except (json.JSONDecodeError, OSError):
-        return False
+        return []
 
 
 def has_typescript_test_file(impl_path: str) -> bool:
@@ -169,6 +171,18 @@ def has_typescript_test_file(impl_path: str) -> bool:
             return True
 
     return False
+
+
+def show_failing_tests(failing_tests: list[str]) -> None:
+    """Display the list of failing tests."""
+    print("", file=sys.stderr)
+    print(f"{GREEN}TDD: {len(failing_tests)} failing test(s) found{NC}", file=sys.stderr)
+    for test in failing_tests[:MAX_FAILING_TESTS_TO_SHOW]:
+        print(f"{GREEN}    • {test}{NC}", file=sys.stderr)
+    if len(failing_tests) > MAX_FAILING_TESTS_TO_SHOW:
+        remaining = len(failing_tests) - MAX_FAILING_TESTS_TO_SHOW
+        print(f"{GREEN}    ... and {remaining} more{NC}", file=sys.stderr)
+    print(f"{GREEN}    Verify your implementation addresses one of these.{NC}", file=sys.stderr)
 
 
 def warn_and_block(file_path: str, message: str, suggestion: str) -> int:
@@ -210,17 +224,18 @@ def run_tdd_enforcer() -> int:
 
     if file_path.endswith(".py"):
         path = Path(file_path).parent
-        found_failing = False
+        failing_tests: list[str] = []
 
         for _ in range(10):
-            if has_failing_python_tests(str(path)):
-                found_failing = True
+            failing_tests = get_failing_python_tests(str(path))
+            if failing_tests:
                 break
             if path.parent == path:
                 break
             path = path.parent
 
-        if found_failing:
+        if failing_tests:
+            show_failing_tests(failing_tests)
             return 0
 
         return warn_and_block(
