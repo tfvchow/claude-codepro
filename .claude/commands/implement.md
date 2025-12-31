@@ -4,6 +4,10 @@ model: opus
 ---
 # IMPLEMENT MODE: Task Execution with Mandatory Context Gathering
 
+> **WARNING: DO NOT use the Task tool with any subagent_type (Explore, Plan, general-purpose).**
+> Perform ALL exploration and implementation yourself using direct tool calls (Read, Grep, Glob, MCP tools).
+> Sub-agents lose context and make implementation inconsistent.
+
 **Execute ALL tasks continuously. NO stopping unless context manager says context is full.**
 
 ## ⛔ CRITICAL: Task Completion Tracking is MANDATORY
@@ -27,25 +31,6 @@ Update counts:
 **Completed:** 4 | **Remaining:** 8  →  **Completed:** 5 | **Remaining:** 7
 ```
 
-## CRITICAL: No Sub-Agents During Implementation
-
-**NEVER use the Task tool or spawn sub-agents during implementation.** Sub-agents slow down execution and waste context. Instead:
-- Use direct tools: Read, Grep, Glob, Bash, Write, Edit
-- Use MCP tools directly: Exa, Cipher, Claude Context
-- If you need external docs, use `mcp__exa__get_code_context_exa()` directly
-
-## MCP Servers - Use Throughout Implementation
-
-| Server | Purpose | When to Use |
-|--------|---------|-------------|
-| **Cipher** | Project memory | Query gotchas, store learnings after each task |
-| **Claude Context** | Semantic code search | Find related code, verify patterns |
-| **Exa** | Web search & code examples | Look up library APIs, find solutions |
-| **MCP Funnel** | Tool discovery | Find specialized tools when stuck |
-
-**Query Cipher at start and store learnings at end of each task.**
-
-
 ## Mandatory Context Gathering Phase (REQUIRED)
 
 **Before ANY implementation, you MUST:**
@@ -57,10 +42,26 @@ Update counts:
    - Git status: `git status --short` and `git diff --name-only`
    - Diagnostics: `mcp__ide__getDiagnostics()`
    - Plan progress: Check for `[x]` completed tasks
-5. **Query knowledge base:**
-   - Cipher: Past implementations and gotchas
-   - Claude Context: Related patterns and components
-   - Exa: External documentation if needed
+
+### 🔧 MCP Tools for Implementation
+
+**Use these MCP servers throughout implementation:**
+
+| Tool | When to Use | Example |
+|------|-------------|---------|
+| **claude-context** | Find related code | `mcp__claude-context__search_code` - "error handling patterns" |
+| **Ref** | Library API lookup | `mcp__Ref__ref_search_documentation` - "pytest fixtures" |
+| **tavily** | Research solutions | `mcp__tavily__tavily-search` - Debug errors, find examples |
+
+**Before starting, ensure codebase is indexed for semantic search:**
+```
+mcp__claude-context__get_indexing_status(path="/absolute/path/to/project")
+```
+
+**During implementation:**
+- Use `mcp__claude-context__search_code` to find similar implementations and patterns
+- Use `mcp__Ref__ref_search_documentation` when unsure about library/framework APIs
+- Use `mcp__tavily__tavily-search` to research error messages or find solutions
 
 ## ⚠️ CRITICAL: Migration/Refactoring Tasks
 
@@ -180,15 +181,14 @@ Before marking complete:
    - Compare behavior with OLD code (if still available)
    - Check Feature Inventory - every feature should now be implemented
    - If ANY feature is missing: **DO NOT mark complete** - add tasks for missing features
-3. Store learnings in Cipher
-4. **MANDATORY: Update plan status to COMPLETE**
+3. **MANDATORY: Update plan status to COMPLETE**
    ```
    Edit the plan file and change the Status line:
    Status: PENDING  →  Status: COMPLETE
    ```
    This triggers the Rules Supervisor on your next response.
-5. Inform user: "✅ All tasks complete. Run `/verify`"
-6. DO NOT run /verify yourself
+4. Inform user: "✅ All tasks complete. Run `/verify`"
+5. DO NOT run /verify yourself
 
 ### Migration Completion Checklist
 

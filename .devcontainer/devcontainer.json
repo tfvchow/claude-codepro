@@ -22,13 +22,20 @@
         "ms-python.debugpy",
         "ms-python.mypy-type-checker",
         "ms-python.python",
-        "ms-python.vscode-python-envs",
         "ms-toolsai.datawrangler",
         "pkief.material-icon-theme",
         "redhat.vscode-xml",
         "redhat.vscode-yaml",
         "tamasfe.even-better-toml"
       ]
+    }
+  },
+  "forwardPorts": [
+    37777 // claude-mem
+  ],
+  "portsAttributes": {
+    "37777": {
+      "label": "claude-mem"
     }
   },
   /* GET FROM: https://containers.dev/features */
@@ -69,6 +76,8 @@
     "ghcr.io/devcontainers/features/git:1": {
       "version": "latest"
     },
+    /* https://github.com/michidk/devcontainers-features/tree/main/src/bun */
+    "ghcr.io/michidk/devcontainers-features/bun:1": {},
     /* https://github.com/braun-daniel/devcontainer-features/blob/main/src/spaceship */
     "ghcr.io/braun-daniel/devcontainer-features/spaceship:1": {},
     /* https://github.com/devcontainers-extra/features/tree/main/src/fzf */
@@ -76,7 +85,7 @@
       "version": "latest"
     }
   },
-  "postCreateCommand": "curl -fsSL https://raw.githubusercontent.com/maxritter/claude-codepro/v3.1.2/install.sh | bash && curl -fsSL https://cli.coderabbit.ai/install.sh | sh",
+  "postCreateCommand": ".devcontainer/postCreateCommand.sh",
   "remoteUser": "root",
   "containerUser": "root"
 }

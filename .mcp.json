@@ -1,39 +1,27 @@
 {
   "mcpServers": {
-    "exa": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://mcp.exa.ai/mcp?tools=web_search_exa,get_code_context_exa,crawling_exa"
-      ]
-    },
     "claude-context": {
       "command": "npx",
       "args": [
         "-y",
-        "@zilliz/claude-context-mcp"
+        "@zilliz/claude-context-mcp@latest"
       ],
       "env": {
         "CUSTOM_IGNORE_PATTERNS": "**/__pycache__/**,**/*.pyc,**/*.pyo,**/*.pyd,**/.pytest_cache/**,**/.coverage,**/.coverage.*,**/.mypy_cache/**,**/.ruff_cache/**,**/.pytype/**,**/htmlcov/**,**/cover/**,**/.tox/**,**/.nox/**,**/*.log,**/.env,**/.env.*,**/.venv/**,**/venv/**,**/ENV/**,**/env/**,**/node_modules/**,**/build/**,**/dist/**,**/*.egg-info/**,.eggs/**,**/.git/**,**/.DS_Store,**/*.parquet,**/*.csv,**/*.tsv,**/*.xls,**/*.xlsx,**/*.db,**/*.sqlite,**/*.sqlite3,data/**,**/*.lock,**/.pixi/**,**/.pdm-build/**,**/.abstra/**,**/__marimo__/**,**/.streamlit/secrets.toml"
       }
     },
-    "cipher": {
+    "tavily": {
       "command": "npx",
       "args": [
         "-y",
-        "@byterover/cipher",
-        "--mode",
-        "mcp",
-        "--agent",
-        ".cipher/config.yml"
+        "tavily-mcp@latest"
       ]
     },
-    "mcp-funnel": {
+    "Ref": {
       "command": "npx",
       "args": [
         "-y",
-        "mcp-funnel@0.0.6"
+        "ref-tools-mcp@latest"
       ]
     }
   }
