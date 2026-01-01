@@ -238,5 +238,9 @@ docs/plans
 # Claude-mem memory database (project-local)
 .claude-mem/
 
+# Claude Code data (devcontainer bind mount)
+.claude-data/*
+!.claude-data/.gitkeep
+
 # Kiro
 .kiro/
