@@ -91,7 +91,7 @@
       "version": "latest"
     }
   },
-  "initializeCommand": "mkdir -p .claude-data .claude-mem .milvus",
+  "initializeCommand": "mkdir -p .claude-data .claude-mem .milvus && grep -qxF '.claude-data/' .gitignore 2>/dev/null || echo -e '\\n# Claude CodePro - Project-local data\\n.claude-data/\\n.claude-mem/\\n.milvus/' >> .gitignore",
   "postCreateCommand": ".devcontainer/postCreateCommand.sh",
   "mounts": [
     // Persist Claude Code data across container rebuilds (bind mount to project folder)

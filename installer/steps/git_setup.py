@@ -206,42 +206,58 @@ class GitSetupStep(BaseStep):
             if ui:
                 ui.success(f"Git user.email: {user_email}")
 
+        # Always ensure .gitignore has project-local data entries
+        gitignore = ctx.project_dir / ".gitignore"
+        gitignore_entries = """
+# Claude CodePro - Project-local data
+.claude-data/
+.claude-mem/
+.milvus/
+"""
+        if not gitignore.exists():
+            gitignore.write_text(
+                """# Environment
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# IDE
+.idea/
+*.swp
+*.swo
+
+# Build
+dist/
+build/
+*.egg-info/
+
+# Data
+data/
+*.db
+"""
+                + gitignore_entries
+            )
+            if ui:
+                ui.success("Created .gitignore")
+        else:
+            # Append project-local data entries if not present
+            content = gitignore.read_text()
+            if ".claude-data/" not in content:
+                with gitignore.open("a") as f:
+                    f.write(gitignore_entries)
+                if ui:
+                    ui.success("Updated .gitignore with project-local data folders")
+
         if not has_commits(ctx.project_dir):
             if ui:
                 ui.status("Creating initial commit...")
-
-            gitignore = ctx.project_dir / ".gitignore"
-            if not gitignore.exists():
-                gitignore.write_text(
-                    """# Environment
-                        .env
-                        .env.local
-                        .env.*.local
-
-                        # Dependencies
-                        node_modules/
-                        __pycache__/
-                        *.pyc
-                        .venv/
-                        venv/
-
-                        # IDE
-                        .idea/
-                        *.swp
-                        *.swo
-
-                        # Build
-                        dist/
-                        build/
-                        *.egg-info/
-
-                        # Data
-                        data/
-                        *.db
-                    """
-                )
-                if ui:
-                    ui.success("Created .gitignore")
 
             if create_initial_commit(ctx.project_dir):
                 if ui:
