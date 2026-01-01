@@ -80,31 +80,13 @@ class ConfigFilesStep(BaseStep):
 
         # Install .devcontainer directory
         devcontainer_dir = ctx.project_dir / ".devcontainer"
-        project_name = ctx.project_dir.name
-        project_slug = project_name.lower().replace(" ", "-").replace("_", "-")
-
-        def replace_placeholders(content: str) -> str:
-            """Replace template placeholders with actual values."""
-            return content.replace(
-                "{{PROJECT_NAME}}", project_name
-            ).replace(
-                "{{PROJECT_SLUG}}", project_slug
-            )
-
         if not devcontainer_dir.exists():
             if ui:
                 with ui.spinner("Installing .devcontainer configuration..."):
                     count = download_directory(".devcontainer", devcontainer_dir, config)
-                    # Replace placeholders in devcontainer.json
-                    dc_json = devcontainer_dir / "devcontainer.json"
-                    if dc_json.exists():
-                        dc_json.write_text(replace_placeholders(dc_json.read_text()))
                 ui.success(f"Installed .devcontainer directory ({count} files)")
             else:
                 download_directory(".devcontainer", devcontainer_dir, config)
-                dc_json = devcontainer_dir / "devcontainer.json"
-                if dc_json.exists():
-                    dc_json.write_text(replace_placeholders(dc_json.read_text()))
         else:
             # Update devcontainer.json if it exists
             devcontainer_json = devcontainer_dir / "devcontainer.json"
@@ -112,8 +94,8 @@ class ConfigFilesStep(BaseStep):
                 with tempfile.TemporaryDirectory() as tmpdir:
                     temp_dc = Path(tmpdir) / "devcontainer.json"
                     if download_file(".devcontainer/devcontainer.json", temp_dc, config):
-                        content = replace_placeholders(temp_dc.read_text())
-                        devcontainer_json.write_text(content)
+                        import shutil
+                        shutil.copy2(temp_dc, devcontainer_json)
                         if ui:
                             ui.success("Updated .devcontainer/devcontainer.json")
 
