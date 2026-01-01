@@ -12,15 +12,6 @@
         "type": "separator"
       },
       {
-        "id": "6d385a86-4e33-4911-bb09-b6be8cba6d87",
-        "type": "context-length",
-        "color": "brightWhite"
-      },
-      {
-        "id": "cba2b667-081e-413b-83bc-2d06eccfaea4",
-        "type": "separator"
-      },
-      {
         "id": "3",
         "type": "context-percentage",
         "color": "brightRed"
