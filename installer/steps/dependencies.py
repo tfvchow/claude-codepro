@@ -87,7 +87,15 @@ def install_claude_code() -> bool:
     if command_exists("claude"):
         return True
 
-    return _run_bash_with_retry("curl -fsSL https://claude.ai/install.sh | bash")
+    # Show output for Claude Code install since it can take a while
+    try:
+        subprocess.run(
+            ["bash", "-c", "curl -fsSL https://claude.ai/install.sh | bash"],
+            check=True,
+        )
+        return True
+    except subprocess.CalledProcessError:
+        return False
 
 
 def install_qlty(project_dir: Path) -> tuple[bool, bool]:
