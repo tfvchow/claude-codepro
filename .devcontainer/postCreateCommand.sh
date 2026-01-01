@@ -66,11 +66,12 @@ curl -fsSL https://cli.coderabbit.ai/install.sh | bash
 # Install Claude Code CLI (before installer to avoid lock issues)
 echo "Installing Claude Code CLI..."
 rm -rf ~/.claude/.installing ~/.claude/*.lock 2>/dev/null || true
-curl -fsSL https://claude.ai/install.sh | bash
+# Use bash -c to avoid SIGPIPE in VS Code devcontainers
+bash -c "$(curl -fsSL https://claude.ai/install.sh)"
 
 # Run Claude CodePro installer from fork
 echo "Running Claude CodePro installer..."
-curl -fsSL https://raw.githubusercontent.com/tfvchow/claude-codepro/main/install.sh | bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/tfvchow/claude-codepro/v3.2.11/install.sh)"
 
 echo ""
 echo "======================================================================"
