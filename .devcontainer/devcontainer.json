@@ -86,6 +86,10 @@
     }
   },
   "postCreateCommand": ".devcontainer/postCreateCommand.sh",
+  "mounts": [
+    // Persist Claude Code credentials across container rebuilds
+    "source=${localEnv:HOME}/.claude,target=/root/.claude,type=bind,consistency=cached"
+  ],
   "remoteUser": "root",
   "containerUser": "root"
 }
