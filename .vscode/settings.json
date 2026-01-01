@@ -51,6 +51,7 @@
         "notebook.source.organizeImports": "explicit"
     },
     "python.languageServer": "None",
+    "basedpyright.disableLanguageServerConflictWarning": true,
     "[python]": {
         "editor.defaultFormatter": "charliermarsh.ruff",
         "editor.formatOnSave": true,

@@ -11,7 +11,8 @@
   "customizations": {
     "vscode": {
       "settings": {
-        "python.languageServer": "None"
+        "python.languageServer": "None",
+        "basedpyright.disableLanguageServerConflictWarning": true
       },
       "extensions": [
         "anthropic.claude-code",
