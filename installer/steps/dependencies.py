@@ -152,44 +152,31 @@ def install_bun() -> bool:
 
 def install_claude_mem() -> bool:
     """Install claude-mem plugin for persistent memory across sessions."""
-    plugins_dir = Path.home() / ".claude" / "plugins"
-    claude_mem_dir = plugins_dir / "thedotmack"
-
-    if (claude_mem_dir / "dist").exists():
-        return True
-
-    plugins_dir.mkdir(parents=True, exist_ok=True)
-
-    if not claude_mem_dir.exists():
-        if not _run_bash_with_retry(
-            "git clone https://github.com/thedotmack/claude-mem.git thedotmack",
-            cwd=plugins_dir,
-        ):
+    # claude-mem requires Bun runtime for bun:sqlite
+    if not command_exists("bun"):
+        if not install_bun():
             return False
 
-    build_cmd = "bun install && bun run build" if command_exists("bun") else "npm install && npm run build"
-    if not _run_bash_with_retry(build_cmd, cwd=claude_mem_dir):
+    # Check if claude CLI is available
+    if not command_exists("claude"):
         return False
 
-    known_marketplaces = {
-        "claude-plugins-official": {
-            "source": {"source": "github", "repo": "anthropics/claude-plugins-official"},
-            "installLocation": str(Path.home() / ".claude/plugins/marketplaces/claude-plugins-official"),
-            "lastUpdated": "2025-12-16T18:12:11.651Z",
-        },
-        "thedotmack": {
-            "source": {"source": "github", "repo": "thedotmack/claude-mem"},
-            "installLocation": str(Path.home() / ".claude/plugins/marketplaces/thedotmack"),
-            "lastUpdated": "2025-12-17T03:35:56.709Z",
-        },
-    }
+    # Add thedotmack marketplace (ignore error if already added)
+    subprocess.run(
+        ["claude", "plugin", "marketplace", "add", "thedotmack/claude-mem"],
+        capture_output=True,
+        text=True,
+    )
 
-    import json
+    # Install the plugin
+    result = subprocess.run(
+        ["claude", "plugin", "install", "claude-mem"],
+        capture_output=True,
+        text=True,
+    )
 
-    marketplaces_file = plugins_dir / "known_marketplaces.json"
-    marketplaces_file.write_text(json.dumps(known_marketplaces, indent=2))
-
-    return True
+    # Success if installed or already installed
+    return result.returncode == 0 or "already installed" in result.stdout.lower() + result.stderr.lower()
 
 
 MILVUS_COMPOSE_URL = (
