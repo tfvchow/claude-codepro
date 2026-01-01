@@ -11,6 +11,27 @@ echo "======================================================================"
 echo "Setting up Claude CodePro development environment..."
 echo "======================================================================"
 
+# Ensure bun is available in PATH for all shells (including /bin/sh used by hooks)
+# The devcontainer feature installs bun to ~/.bun/bin but that's not in /bin/sh PATH
+if [ -f "$HOME/.bun/bin/bun" ] && [ ! -f "/usr/local/bin/bun" ]; then
+    echo "Adding bun to system PATH..."
+    ln -sf "$HOME/.bun/bin/bun" /usr/local/bin/bun
+    ln -sf "$HOME/.bun/bin/bunx" /usr/local/bin/bunx
+fi
+
+# Ensure node/npm/npx are available in PATH for all shells
+# NVM installs to ~/.nvm but that PATH is only set in interactive shells
+if [ -d "$HOME/.nvm" ]; then
+    # Find the default node version
+    NVM_NODE_PATH=$(find "$HOME/.nvm/versions/node" -maxdepth 1 -type d -name "v*" | sort -V | tail -1)
+    if [ -n "$NVM_NODE_PATH" ] && [ -f "$NVM_NODE_PATH/bin/node" ]; then
+        echo "Adding node/npm/npx to system PATH..."
+        ln -sf "$NVM_NODE_PATH/bin/node" /usr/local/bin/node 2>/dev/null || true
+        ln -sf "$NVM_NODE_PATH/bin/npm" /usr/local/bin/npm 2>/dev/null || true
+        ln -sf "$NVM_NODE_PATH/bin/npx" /usr/local/bin/npx 2>/dev/null || true
+    fi
+fi
+
 # Enable dotenv plugin for automatic .env loading
 if ! grep -q "plugins=.*dotenv" ~/.zshrc 2>/dev/null; then
     echo "Configuring dotenv zsh plugin..."
@@ -35,9 +56,9 @@ echo -e 'export PATH=$QLTY_INSTALL/bin:$PATH' >> ~/.zshrc
 echo "Installing CodeRabbit CLI..."
 curl -fsSL https://cli.coderabbit.ai/install.sh | sh
 
-# Run upstream Claude CodePro installer
+# Run Claude CodePro installer from fork
 echo "Running Claude CodePro installer..."
-curl -fsSL https://raw.githubusercontent.com/maxritter/claude-codepro/v3.2.11/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/tfvchow/claude-codepro/main/install.sh | bash
 
 echo ""
 echo "======================================================================"

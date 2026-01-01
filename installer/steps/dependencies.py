@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import re
 import subprocess
 import time
@@ -147,7 +148,26 @@ def install_bun() -> bool:
     if command_exists("bun"):
         return True
 
-    return _run_bash_with_retry("curl -fsSL https://bun.sh/install | bash")
+    if not _run_bash_with_retry("curl -fsSL https://bun.sh/install | bash"):
+        return False
+
+    # Create symlinks in /usr/local/bin so bun is available for all shells
+    # (including /bin/sh used by claude-mem hooks)
+    home = os.path.expanduser("~")
+    bun_bin = os.path.join(home, ".bun", "bin")
+    if os.path.isfile(os.path.join(bun_bin, "bun")):
+        # Try to create symlinks (may fail without sudo, that's ok)
+        for binary in ["bun", "bunx"]:
+            src = os.path.join(bun_bin, binary)
+            dst = f"/usr/local/bin/{binary}"
+            if os.path.isfile(src) and not os.path.exists(dst):
+                try:
+                    os.symlink(src, dst)
+                except PermissionError:
+                    # Try with sudo
+                    subprocess.run(["sudo", "ln", "-sf", src, dst], capture_output=True)
+
+    return True
 
 
 def install_claude_mem() -> bool:

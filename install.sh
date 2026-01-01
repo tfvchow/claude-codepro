@@ -48,6 +48,8 @@ if ! is_in_container; then
         echo "  [..] Downloading dev container configuration..."
         download_file ".devcontainer/Dockerfile" ".devcontainer/Dockerfile"
         download_file ".devcontainer/devcontainer.json" ".devcontainer/devcontainer.json"
+        download_file ".devcontainer/postCreateCommand.sh" ".devcontainer/postCreateCommand.sh"
+        chmod +x ".devcontainer/postCreateCommand.sh"
 
         # Replace placeholders with current directory name
         PROJECT_NAME="$(basename "$(pwd)")"
