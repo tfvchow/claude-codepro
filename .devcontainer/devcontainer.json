@@ -91,7 +91,7 @@
       "version": "latest"
     }
   },
-  "initializeCommand": "mkdir -p .claude-data .claude-mem .milvus && grep -qxF '.claude-data/' .gitignore 2>/dev/null || cat .devcontainer/.gitignore.codepro >> .gitignore",
+  "initializeCommand": "mkdir -p .claude-data .claude-mem .milvus && grep -qxF '.claude-data/' .gitignore 2>/dev/null || printf '\\n# Claude CodePro\\n.claude-data/\\n.claude-mem/\\n.milvus/\\n' >> .gitignore",
   "postCreateCommand": ".devcontainer/postCreateCommand.sh",
   "mounts": [
     // Persist Claude Code data across container rebuilds (bind mount to project folder)
