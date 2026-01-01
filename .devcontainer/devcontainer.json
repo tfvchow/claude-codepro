@@ -10,6 +10,9 @@
   "workspaceFolder": "/workspaces/{{PROJECT_SLUG}}",
   "customizations": {
     "vscode": {
+      "settings": {
+        "python.languageServer": "None"
+      },
       "extensions": [
         "anthropic.claude-code",
         "charliermarsh.ruff",
