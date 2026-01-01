@@ -13,6 +13,9 @@
       "settings": {
         "python.languageServer": "None"
       },
+      "unwantedRecommendations": [
+        "ms-python.vscode-pylance"
+      ],
       "extensions": [
         "anthropic.claude-code",
         "charliermarsh.ruff",
