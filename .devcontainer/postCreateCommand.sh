@@ -63,11 +63,22 @@ echo -e 'export PATH=$QLTY_INSTALL/bin:$PATH' >> ~/.zshrc
 echo "Installing CodeRabbit CLI..."
 curl -fsSL https://cli.coderabbit.ai/install.sh | bash
 
-# Install Claude Code CLI (before installer to avoid lock issues)
+# Install Claude Code CLI
 echo "Installing Claude Code CLI..."
+# Backup credentials before install (installer may overwrite them)
+if [ -f ~/.claude/.credentials.json ]; then
+    cp ~/.claude/.credentials.json /tmp/.credentials.json.bak
+fi
+# Only clear lock files
 rm -rf ~/.claude/.installing ~/.claude/*.lock 2>/dev/null || true
 # Use bash -c to avoid SIGPIPE in VS Code devcontainers
 bash -c "$(curl -fsSL https://claude.ai/install.sh)"
+# Restore credentials if they were backed up
+if [ -f /tmp/.credentials.json.bak ]; then
+    cp /tmp/.credentials.json.bak ~/.claude/.credentials.json
+    rm /tmp/.credentials.json.bak
+    echo "Restored existing Claude Code credentials"
+fi
 
 # Run Claude CodePro installer from fork
 echo "Running Claude CodePro installer..."
