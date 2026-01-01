@@ -63,14 +63,11 @@ if ! is_in_container; then
         echo "  [OK] Dev container configuration installed"
     fi
 
-    # Download VS Code extensions recommendations (so they're ready when VS Code opens)
-    if [ ! -f ".vscode/extensions.json" ]; then
-        echo "  [..] Downloading VS Code extensions recommendations..."
-        download_file ".vscode/extensions.json" ".vscode/extensions.json"
-        echo "  [OK] VS Code extensions recommendations installed"
-    else
-        echo "  [OK] .vscode/extensions.json already exists"
-    fi
+    # Download VS Code settings and extensions
+    echo "  [..] Downloading VS Code configuration..."
+    download_file ".vscode/settings.json" ".vscode/settings.json"
+    download_file ".vscode/extensions.json" ".vscode/extensions.json"
+    echo "  [OK] VS Code configuration installed"
 
     echo ""
     echo "  Next steps:"
