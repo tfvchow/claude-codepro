@@ -151,6 +151,28 @@ class ClaudeFilesStep(BaseStep):
                 if len(failed_files) > 5:
                     ui.print(f"  ... and {len(failed_files) - 5} more")
 
+        # Install .vscode/settings.json
+        if ui:
+            ui.status("Installing .vscode settings...")
+
+        vscode_files = get_repo_files(".vscode", config)
+        vscode_count = 0
+
+        for file_path in vscode_files:
+            if not file_path:
+                continue
+            # Only install settings.json and extensions.json
+            if file_path.endswith("settings.json") or file_path.endswith("extensions.json"):
+                dest_file = ctx.project_dir / file_path
+                if download_file(file_path, dest_file, config):
+                    vscode_count += 1
+
+        if ui:
+            if vscode_count > 0:
+                ui.success(f"Installed {vscode_count} .vscode files")
+            else:
+                ui.warning("No .vscode files were installed")
+
     def rollback(self, ctx: InstallContext) -> None:
         """Remove installed files."""
         installed_files = ctx.config.get("installed_files", [])
