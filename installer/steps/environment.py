@@ -1,8 +1,9 @@
-"""Environment step - sets up .env file with API keys."""
+"""Environment step - sets up .env.codepro file with API keys."""
 
 from __future__ import annotations
 
 import os
+import shutil
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -12,6 +13,7 @@ if TYPE_CHECKING:
     from installer.context import InstallContext
 
 
+# Keys to remove from old .env files during migration
 OBSOLETE_ENV_KEYS = [
     "MILVUS_TOKEN",
     "VECTOR_STORE_USERNAME",
@@ -20,7 +22,16 @@ OBSOLETE_ENV_KEYS = [
     "GEMINI_API_KEY",
 ]
 
+# Claude CodePro specific keys (belong in .env.codepro, not .env)
+CODEPRO_KEYS = [
+    ("OPENAI_API_KEY", "Semantic Code Search", "https://platform.openai.com/api-keys"),
+    ("TAVILY_API_KEY", "AI Web Search", "https://app.tavily.com/home"),
+    ("REF_API_KEY", "Library Docs", "https://ref.tools/dashboard"),
+]
+
 LOCAL_MILVUS_ADDRESS = "http://host.docker.internal:19530"
+ENV_CODEPRO_FILE = ".env.codepro"
+ENV_CODEPRO_TEMPLATE = ".env.codepro.template"
 
 
 def remove_env_key(key: str, env_file: Path) -> bool:
@@ -89,107 +100,93 @@ def add_env_key(key: str, value: str, env_file: Path) -> None:
 
 
 class EnvironmentStep(BaseStep):
-    """Step that sets up the .env file for API keys."""
+    """Step that sets up the .env.codepro file for Claude CodePro API keys."""
 
     name = "environment"
 
     def check(self, ctx: InstallContext) -> bool:
-        """Always returns False - environment step should always run to check for missing keys."""
-        return False
+        """Check if .env.codepro exists with required keys."""
+        env_file = ctx.project_dir / ENV_CODEPRO_FILE
+        if not env_file.exists():
+            return False
+        # Check if at least one key is set
+        return any(key_is_set(key, env_file) for key, _, _ in CODEPRO_KEYS)
 
     def run(self, ctx: InstallContext) -> None:
-        """Set up .env file with API keys."""
+        """Set up .env.codepro file with Claude CodePro API keys."""
         ui = ctx.ui
-        env_file = ctx.project_dir / ".env"
+        env_file = ctx.project_dir / ENV_CODEPRO_FILE
+        template_file = ctx.project_dir / ENV_CODEPRO_TEMPLATE
 
         if ctx.skip_env or ctx.non_interactive:
             if ui:
-                ui.status("Skipping .env setup")
+                ui.status("Skipping .env.codepro setup")
             return
 
         if ui:
-            ui.section("API Keys Setup")
+            ui.section("Claude CodePro API Keys")
 
-        append_mode = env_file.exists()
+        # Copy from template if .env.codepro doesn't exist
+        if not env_file.exists():
+            if template_file.exists():
+                shutil.copy(template_file, env_file)
+                if ui:
+                    ui.success(f"Created {ENV_CODEPRO_FILE} from template")
+            else:
+                env_file.touch()
+                if ui:
+                    ui.success(f"Created {ENV_CODEPRO_FILE}")
+        else:
+            if ui:
+                ui.success(f"Found existing {ENV_CODEPRO_FILE}")
 
-        if append_mode:
-            removed_keys = cleanup_obsolete_env_keys(env_file)
+        # Clean up obsolete keys from old .env file (migration)
+        old_env_file = ctx.project_dir / ".env"
+        if old_env_file.exists():
+            removed_keys = cleanup_obsolete_env_keys(old_env_file)
             if removed_keys and ui:
-                ui.print(f"  [dim]Removed obsolete keys: {', '.join(removed_keys)}[/dim]")
+                ui.print(f"  [dim]Removed obsolete keys from .env: {', '.join(removed_keys)}[/dim]")
 
-            set_env_key("MILVUS_ADDRESS", LOCAL_MILVUS_ADDRESS, env_file)
+        # Prompt for missing keys
+        if ui:
+            ui.print()
+            ui.print("  Checking for missing API keys...")
+            ui.print()
 
-        if append_mode:
-            if ui:
-                ui.success("Found existing .env file")
-                ui.print("  We'll append Claude CodePro configuration to your existing file.")
-                ui.print()
-        else:
-            if ui:
-                ui.print("  Let's set up your API keys. I'll guide you through each one.")
-                ui.print()
+        missing_count = 0
+        for idx, (key, desc, url) in enumerate(CODEPRO_KEYS, 1):
+            if key_is_set(key, env_file):
+                if ui:
+                    ui.success(f"{key} already set")
+                continue
 
-        openai_api_key = ""
-        tavily_api_key = ""
-        ref_api_key = ""
-
-        if not key_is_set("OPENAI_API_KEY", env_file):
+            missing_count += 1
             if ui:
                 ui.print()
-                ui.rule("1. OpenAI API Key - Semantic Code Search")
+                ui.rule(f"{idx}. {key} - {desc}")
                 ui.print()
-                ui.print("  [bold]Used for:[/bold] Generating embeddings for Claude Context semantic search")
-                ui.print("  [bold]Why:[/bold] Powers fast, intelligent code search across your codebase")
-                ui.print("  [bold]Create at:[/bold] [cyan]https://platform.openai.com/api-keys[/cyan]")
+                ui.print(f"  [bold]Create at:[/bold] [cyan]{url}[/cyan]")
                 ui.print()
 
-                openai_api_key = ui.input("OPENAI_API_KEY", default="")
-        else:
-            if ui:
-                ui.success("OPENAI_API_KEY already set, skipping")
+                value = ui.input(key, default="")
+                if value:  # Only add non-empty values
+                    add_env_key(key, value, env_file)
+                    ui.success(f"Added {key}")
+                else:
+                    ui.warning(f"Skipped {key} (empty)")
 
-        if not key_is_set("TAVILY_API_KEY", env_file):
-            if ui:
-                ui.print()
-                ui.rule("2. Tavily API Key - AI-Powered Web Search")
-                ui.print()
-                ui.print(
-                    "  [bold]Used for:[/bold] Web search, code examples, documentation lookup, and URL content extraction"
-                )
-                ui.print("  [bold]Create at:[/bold] [cyan]https://app.tavily.com/home[/cyan]")
-                ui.print()
-
-                tavily_api_key = ui.input("TAVILY_API_KEY", default="")
-        else:
-            if ui:
-                ui.success("TAVILY_API_KEY already set, skipping")
-
-        if not key_is_set("REF_API_KEY", env_file):
-            if ui:
-                ui.print()
-                ui.rule("3. Ref.Tools API Key - Library Documentation Search")
-                ui.print()
-                ui.print("  [bold]Used for:[/bold] Searching library and framework documentation")
-                ui.print("  [bold]Create at:[/bold] [cyan]https://ref.tools/dashboard[/cyan]")
-                ui.print()
-
-                ref_api_key = ui.input("REF_API_KEY", default="")
-        else:
-            if ui:
-                ui.success("REF_API_KEY already set, skipping")
-
-        add_env_key("OPENAI_API_KEY", openai_api_key, env_file)
-        add_env_key("TAVILY_API_KEY", tavily_api_key, env_file)
-        add_env_key("REF_API_KEY", ref_api_key, env_file)
-
-        if not append_mode:
-            set_env_key("MILVUS_ADDRESS", LOCAL_MILVUS_ADDRESS, env_file)
+        # Always ensure MILVUS_ADDRESS is set
+        set_env_key("MILVUS_ADDRESS", LOCAL_MILVUS_ADDRESS, env_file)
 
         if ui:
-            if append_mode:
-                ui.success("Updated .env file with Claude CodePro configuration")
+            ui.print()
+            if missing_count == 0:
+                ui.success("All Claude CodePro API keys are configured")
             else:
-                ui.success("Created .env file with your API keys")
+                ui.success(f"Updated {ENV_CODEPRO_FILE}")
+            ui.print()
+            ui.print(f"  [dim]Note: Your project .env file remains untouched.[/dim]")
+            ui.print(f"  [dim]Claude CodePro uses {ENV_CODEPRO_FILE} for its own keys.[/dim]")
 
     def rollback(self, ctx: InstallContext) -> None:
         """No rollback for environment setup."""
