@@ -78,7 +78,7 @@ class ConfigFilesStep(BaseStep):
             else:
                 download_directory(".qlty", qlty_dir, config)
 
-        # Install .devcontainer directory
+        # Install .devcontainer directory (only if it doesn't exist)
         devcontainer_dir = ctx.project_dir / ".devcontainer"
         if not devcontainer_dir.exists():
             if ui:
@@ -88,16 +88,8 @@ class ConfigFilesStep(BaseStep):
             else:
                 download_directory(".devcontainer", devcontainer_dir, config)
         else:
-            # Update devcontainer.json if it exists
-            devcontainer_json = devcontainer_dir / "devcontainer.json"
-            if devcontainer_json.exists():
-                with tempfile.TemporaryDirectory() as tmpdir:
-                    temp_dc = Path(tmpdir) / "devcontainer.json"
-                    if download_file(".devcontainer/devcontainer.json", temp_dc, config):
-                        import shutil
-                        shutil.copy2(temp_dc, devcontainer_json)
-                        if ui:
-                            ui.success("Updated .devcontainer/devcontainer.json")
+            if ui:
+                ui.success(".devcontainer already exists (not overwriting)")
 
         mcp_file = ctx.project_dir / ".mcp.json"
         added_count = 0
