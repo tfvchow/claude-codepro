@@ -11,6 +11,13 @@ echo "======================================================================"
 echo "Setting up Claude CodePro development environment..."
 echo "======================================================================"
 
+# Fix Docker credentials issue - VS Code copies host's docker config with
+# a credential helper that doesn't exist inside the container
+if [ -f ~/.docker/config.json ] && grep -q "credsStore" ~/.docker/config.json 2>/dev/null; then
+    echo "Fixing Docker credentials configuration..."
+    echo '{}' > ~/.docker/config.json
+fi
+
 # Ensure bun is available in PATH for all shells (including /bin/sh used by hooks)
 # The devcontainer feature installs bun to ~/.bun/bin but that's not in /bin/sh PATH
 if [ -f "$HOME/.bun/bin/bun" ] && [ ! -f "/usr/local/bin/bun" ]; then
