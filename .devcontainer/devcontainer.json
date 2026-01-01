@@ -93,8 +93,8 @@
   },
   "postCreateCommand": ".devcontainer/postCreateCommand.sh",
   "mounts": [
-    // Persist Claude Code credentials across container rebuilds (per-project volume)
-    "source=claude-${localWorkspaceFolderBasename},target=/root/.claude,type=volume"
+    // Persist Claude Code data across container rebuilds (bind mount to project folder)
+    "source=${localWorkspaceFolder}/.claude-data,target=/root/.claude,type=bind"
   ],
   "remoteUser": "root",
   "containerUser": "root"
