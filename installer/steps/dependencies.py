@@ -232,31 +232,29 @@ def _milvus_containers_running() -> bool:
 
 
 def install_local_milvus(ui: Any = None, local_mode: bool = False, local_repo_dir: Path | None = None) -> bool:
-    """Start local Milvus via docker compose in ~/.claude/milvus/."""
-    import shutil
-
+    """Start local Milvus via docker compose from project root."""
     if _milvus_containers_running():
         return True
 
-    milvus_dir = Path.home() / ".claude" / "milvus"
-    compose_file = milvus_dir / "docker-compose.yml"
-
-    milvus_dir.mkdir(parents=True, exist_ok=True)
-
+    # Determine project root and compose file location
     if local_mode and local_repo_dir:
-        source_file = local_repo_dir / MILVUS_COMPOSE_LOCAL_PATH
-        if source_file.exists():
-            shutil.copy2(source_file, compose_file)
-        else:
+        project_root = local_repo_dir
+        compose_file = project_root / MILVUS_COMPOSE_LOCAL_PATH
+        if not compose_file.exists():
             return False
     else:
+        # For non-local mode, download to ~/.claude/milvus/ and run from there
+        milvus_dir = Path.home() / ".claude" / "milvus"
+        milvus_dir.mkdir(parents=True, exist_ok=True)
+        compose_file = milvus_dir / "docker-compose.yml"
+        project_root = milvus_dir
         if not _run_bash_with_retry(f"curl -fsSL -o {compose_file} {MILVUS_COMPOSE_URL}"):
             return False
 
     try:
         process = subprocess.Popen(
-            ["sudo", "docker", "compose", "--progress=plain", "up", "-d"],
-            cwd=milvus_dir,
+            ["sudo", "docker", "compose", "-f", str(compose_file), "--progress=plain", "up", "-d"],
+            cwd=project_root,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,

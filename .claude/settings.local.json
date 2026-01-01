@@ -3,6 +3,7 @@
     "ANTHROPIC_CUSTOM_HEADERS": "anthropic-beta: interleaved-thinking-2025-05-14",
     "ENABLE_EXPERIMENTAL_MCP_CLI": "true",
     "CLAUDE_MEM_MODEL": "opus",
+    "CLAUDE_MEM_DATA_DIR": ".claude-mem",
     "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "63999",
     "MAX_MCP_OUTPUT_TOKENS": "10000",
     "MAX_THINKING_TOKENS": "63999",

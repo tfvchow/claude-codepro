@@ -232,5 +232,11 @@ __marimo__/
 .claude/bin/
 docs/plans
 
+# Milvus vector database (project-local)
+.milvus/
+
+# Claude-mem memory database (project-local)
+.claude-mem/
+
 # Kiro
 .kiro/
