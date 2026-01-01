@@ -11,9 +11,7 @@
   "customizations": {
     "vscode": {
       "settings": {
-        "python.languageServer": "None",
-        "python.analysis.typeCheckingMode": "off",
-        "pylance.enable": false
+        "python.languageServer": "None"
       },
       "extensions": [
         "anthropic.claude-code",
