@@ -10,6 +10,11 @@
   "workspaceFolder": "/workspaces/{{PROJECT_SLUG}}",
   "customizations": {
     "vscode": {
+      "settings": {
+        "python.languageServer": "None",
+        "python.analysis.typeCheckingMode": "off",
+        "pylance.enable": false
+      },
       "extensions": [
         "anthropic.claude-code",
         "charliermarsh.ruff",
