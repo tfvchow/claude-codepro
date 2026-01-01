@@ -61,7 +61,7 @@ echo -e 'export PATH=$QLTY_INSTALL/bin:$PATH' >> ~/.zshrc
 
 # Install CodeRabbit CLI
 echo "Installing CodeRabbit CLI..."
-curl -fsSL https://cli.coderabbit.ai/install.sh | sh
+curl -fsSL https://cli.coderabbit.ai/install.sh | bash
 
 # Install Claude Code CLI (before installer to avoid lock issues)
 echo "Installing Claude Code CLI..."
