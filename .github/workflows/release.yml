@@ -1,5 +1,4 @@
 ---
-# Usage: gh workflow run release.yml -f version=X.Y.Z --repo tfvchow/claude-codepro
 name: Release
 
 "on":
