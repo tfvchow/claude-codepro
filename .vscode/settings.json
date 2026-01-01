@@ -52,6 +52,7 @@
     },
     "python.languageServer": "None",
     "basedpyright.disableLanguageServerConflictWarning": true,
+    "basedpyright.importStrategy": "useBundled",
     "[python]": {
         "editor.defaultFormatter": "charliermarsh.ruff",
         "editor.formatOnSave": true,
