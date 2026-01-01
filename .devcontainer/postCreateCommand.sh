@@ -54,7 +54,7 @@ if [ -d "${WORKSPACE_ROOT}/.qlty" ]; then
     find "${WORKSPACE_ROOT}/.qlty" -mindepth 1 -maxdepth 1 -type l -delete 2>/dev/null || true
     find "${WORKSPACE_ROOT}/.qlty" -mindepth 1 -maxdepth 1 -type f ! -name 'qlty.toml' ! -name '.gitignore' -delete 2>/dev/null || true
 fi
-curl -fsSL https://qlty.sh | sh
+curl -fsSL https://qlty.sh | bash
 echo -e "\nexport QLTY_INSTALL=\"\$HOME/.qlty\"" >> ~/.zshrc
 echo -e 'export PATH=$QLTY_INSTALL/bin:$PATH' >> ~/.zshrc
 "$HOME/.qlty/bin/qlty" check --install-only || true
