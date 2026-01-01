@@ -38,6 +38,15 @@
         "type": "separator"
       },
       {
+        "id": "8",
+        "type": "cost",
+        "color": "green"
+      },
+      {
+        "id": "9",
+        "type": "separator"
+      },
+      {
         "id": "7",
         "type": "version",
         "color": "brightWhite"
