@@ -50,9 +50,7 @@
     "notebook.codeActionsOnSave": {
         "notebook.source.organizeImports": "explicit"
     },
-    "python.languageServer": "None",
-    "basedpyright.disableLanguageServerConflictWarning": true,
-    "basedpyright.importStrategy": "useBundled",
+    "python.languageServer": "Default",
     "[python]": {
         "editor.defaultFormatter": "charliermarsh.ruff",
         "editor.formatOnSave": true,

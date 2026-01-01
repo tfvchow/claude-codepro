@@ -10,11 +10,6 @@
   "workspaceFolder": "/workspaces/{{PROJECT_SLUG}}",
   "customizations": {
     "vscode": {
-      "settings": {
-        "python.languageServer": "None",
-        "basedpyright.disableLanguageServerConflictWarning": true,
-        "basedpyright.importStrategy": "useBundled"
-      },
       "extensions": [
         "anthropic.claude-code",
         "charliermarsh.ruff",
@@ -25,6 +20,7 @@
         "github.github-vscode-theme",
         "lumirelle.shell-format-rev",
         "ms-python.debugpy",
+        "ms-python.mypy-type-checker",
         "ms-python.python",
         "ms-toolsai.datawrangler",
         "pkief.material-icon-theme",
