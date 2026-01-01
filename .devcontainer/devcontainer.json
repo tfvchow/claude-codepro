@@ -91,6 +91,7 @@
       "version": "latest"
     }
   },
+  "initializeCommand": "mkdir -p .claude-data",
   "postCreateCommand": ".devcontainer/postCreateCommand.sh",
   "mounts": [
     // Persist Claude Code data across container rebuilds (bind mount to project folder)
