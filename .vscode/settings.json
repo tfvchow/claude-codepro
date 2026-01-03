@@ -50,7 +50,7 @@
     "notebook.codeActionsOnSave": {
         "notebook.source.organizeImports": "explicit"
     },
-    "python.languageServer": "Default",
+    "python.languageServer": "None",
     "[python]": {
         "editor.defaultFormatter": "charliermarsh.ruff",
         "editor.formatOnSave": true,
