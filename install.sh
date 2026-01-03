@@ -49,15 +49,6 @@ if ! is_in_container; then
         download_file ".devcontainer/Dockerfile" ".devcontainer/Dockerfile"
         download_file ".devcontainer/devcontainer.json" ".devcontainer/devcontainer.json"
 
-        # Replace placeholders with current directory name
-        PROJECT_NAME="$(basename "$(pwd)")"
-        PROJECT_SLUG="$(echo "$PROJECT_NAME" | tr '[:upper:]' '[:lower:]' | tr ' _' '-')"
-        if [ -f ".devcontainer/devcontainer.json" ]; then
-            sed -i.bak "s/{{PROJECT_NAME}}/${PROJECT_NAME}/g" ".devcontainer/devcontainer.json"
-            sed -i.bak "s/{{PROJECT_SLUG}}/${PROJECT_SLUG}/g" ".devcontainer/devcontainer.json"
-            rm -f ".devcontainer/devcontainer.json.bak"
-        fi
-
         echo "  [OK] Dev container configuration installed"
     fi
 

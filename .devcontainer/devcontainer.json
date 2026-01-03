@@ -1,13 +1,13 @@
 {
-  "name": "{{PROJECT_NAME}}",
+  "name": "${localWorkspaceFolderBasename}",
   "build": {
     "dockerfile": "Dockerfile"
   },
   "runArgs": [
     "--name",
-    "{{PROJECT_SLUG}}"
+    "${localWorkspaceFolderBasename}"
   ],
-  "workspaceFolder": "/workspaces/{{PROJECT_SLUG}}",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
   "customizations": {
     "vscode": {
       "extensions": [
