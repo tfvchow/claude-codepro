@@ -85,6 +85,9 @@
       "version": "latest"
     }
   },
+  "mounts": [
+    "source=${localWorkspaceFolderBasename}-claude-config,target=/root/.claude,type=volume"
+  ],
   "postCreateCommand": ".devcontainer/postCreateCommand.sh",
   "remoteUser": "root",
   "containerUser": "root"

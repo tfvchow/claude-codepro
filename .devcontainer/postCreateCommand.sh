@@ -11,6 +11,12 @@ echo "======================================================================"
 echo "Setting up Claude CodePro development environment..."
 echo "======================================================================"
 
+# Setup Claude config symlink for credential persistence across rebuilds.
+# Claude Code requires both /root/.claude/ dir and /root/.claude.json file.
+# We store .claude.json inside the mounted volume and symlink to it.
+[ -f /root/.claude/.claude.json ] || echo '{}' > /root/.claude/.claude.json
+ln -sf /root/.claude/.claude.json /root/.claude.json
+
 # Enable dotenv plugin for automatic .env loading
 if ! grep -q "plugins=.*dotenv" ~/.zshrc 2>/dev/null; then
     echo "Configuring dotenv zsh plugin..."
