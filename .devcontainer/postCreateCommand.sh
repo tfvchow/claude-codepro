@@ -11,6 +11,11 @@ echo "======================================================================"
 echo "Setting up Claude CodePro development environment..."
 echo "======================================================================"
 
+# Fix Docker credentials - remove host's credential helper that doesn't exist in container
+if [ -f ~/.docker/config.json ] && command -v jq &> /dev/null; then
+    jq 'del(.credsStore)' ~/.docker/config.json > ~/.docker/config.json.tmp && mv ~/.docker/config.json.tmp ~/.docker/config.json
+fi
+
 # Setup Claude config symlink for credential persistence across rebuilds.
 # Claude Code requires both /root/.claude/ dir and /root/.claude.json file.
 # We store .claude.json inside the mounted volume and symlink to it.
