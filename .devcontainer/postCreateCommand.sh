@@ -37,18 +37,18 @@ if [ -d "${WORKSPACE_ROOT}/.qlty" ]; then
     find "${WORKSPACE_ROOT}/.qlty" -mindepth 1 -maxdepth 1 -type l -delete 2>/dev/null || true
     find "${WORKSPACE_ROOT}/.qlty" -mindepth 1 -maxdepth 1 -type f ! -name 'qlty.toml' ! -name '.gitignore' -delete 2>/dev/null || true
 fi
-curl -fsSL https://qlty.sh | sh
+bash -c "$(curl -fsSL https://qlty.sh)"
 echo -e "\nexport QLTY_INSTALL=\"\$HOME/.qlty\"" >> ~/.zshrc
 echo -e 'export PATH=$QLTY_INSTALL/bin:$PATH' >> ~/.zshrc
 "$HOME/.qlty/bin/qlty" check --install-only || true
 
-# Install CodeRabbit CLI
+# Install CodeRabbit CLI (use bash -c to ensure SHELL is set)
 echo "Installing CodeRabbit CLI..."
-curl -fsSL https://cli.coderabbit.ai/install.sh | sh
+bash -c "$(curl -fsSL https://cli.coderabbit.ai/install.sh)"
 
 # Run upstream Claude CodePro installer
 echo "Running Claude CodePro installer..."
-curl -fsSL https://raw.githubusercontent.com/maxritter/claude-codepro/v3.2.11/install.sh | bash
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/maxritter/claude-codepro/v3.2.11/install.sh)"
 
 echo ""
 echo "======================================================================"
