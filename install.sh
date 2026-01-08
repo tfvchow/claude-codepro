@@ -42,24 +42,20 @@ if ! is_in_container; then
     echo "======================================================================"
     echo ""
 
-    if [ -d ".devcontainer" ]; then
-        echo "  [OK] .devcontainer already exists"
-    else
-        echo "  [..] Downloading dev container configuration..."
-        download_file ".devcontainer/Dockerfile" ".devcontainer/Dockerfile"
-        download_file ".devcontainer/devcontainer.json" ".devcontainer/devcontainer.json"
+    # Always download .devcontainer files (git provides safety for review)
+    echo "  [..] Downloading dev container configuration..."
+    download_file ".devcontainer/Dockerfile" ".devcontainer/Dockerfile"
+    download_file ".devcontainer/devcontainer.json" ".devcontainer/devcontainer.json"
+    download_file ".devcontainer/postCreateCommand.sh" ".devcontainer/postCreateCommand.sh"
+    chmod +x ".devcontainer/postCreateCommand.sh"
+    echo "  [OK] Dev container configuration installed"
 
-        echo "  [OK] Dev container configuration installed"
-    fi
-
-    # Download VS Code extensions recommendations (so they're ready when VS Code opens)
-    if [ ! -f ".vscode/extensions.json" ]; then
-        echo "  [..] Downloading VS Code extensions recommendations..."
-        download_file ".vscode/extensions.json" ".vscode/extensions.json"
-        echo "  [OK] VS Code extensions recommendations installed"
-    else
-        echo "  [OK] .vscode/extensions.json already exists"
-    fi
+    # Always download VS Code settings (git provides safety for review)
+    echo "  [..] Downloading VS Code settings..."
+    download_file ".vscode/settings.json" ".vscode/settings.json"
+    download_file ".vscode/extensions.json" ".vscode/extensions.json"
+    download_file ".vscode/tasks.json" ".vscode/tasks.json"
+    echo "  [OK] VS Code settings installed"
 
     echo ""
     echo "  Next steps:"
