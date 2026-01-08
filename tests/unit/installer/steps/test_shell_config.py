@@ -109,12 +109,12 @@ class TestAliasHelpers:
         result = get_alias_line("bash")
         assert "ccp" in result
 
-    def test_alias_uses_dotenvx(self):
-        """Alias uses dotenvx to load environment variables."""
+    def test_alias_uses_dotenvx_with_env_files(self):
+        """Alias uses dotenvx to load both .env and .env.codepro files."""
         from installer.steps.shell_config import get_alias_line
 
         result = get_alias_line("bash")
-        assert "dotenvx run claude" in result
+        assert "dotenvx run -f .env -f .env.codepro -- claude" in result
 
     def test_alias_uses_nvm(self):
         """Alias sets Node.js version via nvm."""
@@ -138,5 +138,5 @@ class TestAliasHelpers:
         result = get_alias_line("fish")
         # Fish uses 'and' for chaining commands, 'test' instead of '[]'
         assert "test -d" in result or "and" in result
-        assert "dotenvx run claude" in result
+        assert "dotenvx run -f .env -f .env.codepro -- claude" in result
         assert "nvm use 22" in result

@@ -98,9 +98,9 @@ class EnvironmentStep(BaseStep):
         return False
 
     def run(self, ctx: InstallContext) -> None:
-        """Set up .env file with API keys."""
+        """Set up .env.codepro file with API keys."""
         ui = ctx.ui
-        env_file = ctx.project_dir / ".env"
+        env_file = ctx.project_dir / ".env.codepro"
 
         if ctx.skip_env or ctx.non_interactive:
             if ui:
@@ -121,8 +121,8 @@ class EnvironmentStep(BaseStep):
 
         if append_mode:
             if ui:
-                ui.success("Found existing .env file")
-                ui.print("  We'll append Claude CodePro configuration to your existing file.")
+                ui.success("Found existing .env.codepro file")
+                ui.print("  We'll update your existing configuration.")
                 ui.print()
         else:
             if ui:
@@ -187,9 +187,9 @@ class EnvironmentStep(BaseStep):
 
         if ui:
             if append_mode:
-                ui.success("Updated .env file with Claude CodePro configuration")
+                ui.success("Updated .env.codepro with Claude CodePro configuration")
             else:
-                ui.success("Created .env file with your API keys")
+                ui.success("Created .env.codepro with your API keys")
 
     def rollback(self, ctx: InstallContext) -> None:
         """No rollback for environment setup."""

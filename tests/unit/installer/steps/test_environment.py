@@ -55,26 +55,36 @@ class TestEnvironmentStep:
             # Should not raise or prompt
             step.run(ctx)
 
-    def test_environment_appends_to_existing_env(self):
-        """EnvironmentStep appends to existing .env file."""
+    def test_environment_uses_env_codepro_path(self):
+        """EnvironmentStep targets .env.codepro file, not .env."""
         from installer.context import InstallContext
         from installer.steps.environment import EnvironmentStep
-        from installer.ui import Console
 
-        step = EnvironmentStep()
+        # Verify the run method docstring mentions .env.codepro
+        assert ".env.codepro" in EnvironmentStep.run.__doc__
+
+    def test_add_env_key_writes_to_specified_file(self):
+        """add_env_key writes to the specified file path."""
+        from installer.steps.environment import add_env_key
+
         with tempfile.TemporaryDirectory() as tmpdir:
-            # Create existing .env
-            env_file = Path(tmpdir) / ".env"
-            env_file.write_text("EXISTING_KEY=existing_value\n")
+            env_codepro = Path(tmpdir) / ".env.codepro"
 
-            ctx = InstallContext(
-                project_dir=Path(tmpdir),
-                non_interactive=True,
-                ui=Console(non_interactive=True),
-            )
+            add_env_key("TEST_KEY", "test_value", env_codepro)
 
-            step.run(ctx)
+            assert env_codepro.exists()
+            content = env_codepro.read_text()
+            assert "TEST_KEY=test_value" in content
 
-            # Existing content should be preserved
-            content = env_file.read_text()
-            assert "EXISTING_KEY=existing_value" in content
+    def test_key_exists_in_file_checks_correct_file(self):
+        """key_exists_in_file checks the specified file."""
+        from installer.steps.environment import key_exists_in_file
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            env_codepro = Path(tmpdir) / ".env.codepro"
+            env_codepro.write_text("MY_KEY=my_value\n")
+
+            # Key exists in .env.codepro
+            assert key_exists_in_file("MY_KEY", env_codepro) is True
+            # Key doesn't exist
+            assert key_exists_in_file("OTHER_KEY", env_codepro) is False

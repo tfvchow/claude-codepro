@@ -115,6 +115,41 @@ class TestGitHelpers:
             assert has_commits(project_dir) is True
 
 
+class TestGitignoreTemplate:
+    """Test gitignore template generation."""
+
+    def test_gitignore_includes_env_codepro(self):
+        """Gitignore template should include .env.codepro."""
+        from installer.context import InstallContext
+        from installer.steps.git_setup import GitSetupStep
+        from installer.ui import Console
+
+        step = GitSetupStep()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_dir = Path(tmpdir)
+
+            # Initialize git without commits
+            subprocess.run(["git", "init"], cwd=project_dir, capture_output=True)
+            subprocess.run(["git", "config", "user.name", "Test"], cwd=project_dir, capture_output=True)
+            subprocess.run(["git", "config", "user.email", "test@test.com"], cwd=project_dir, capture_output=True)
+            subprocess.run(["git", "config", "commit.gpgsign", "false"], cwd=project_dir, capture_output=True)
+
+            ctx = InstallContext(
+                project_dir=project_dir,
+                non_interactive=True,
+                ui=Console(non_interactive=True),
+            )
+
+            with patch.dict("os.environ", {"GIT_USER_NAME": "CI User", "GIT_USER_EMAIL": "ci@test.com"}):
+                step.run(ctx)
+
+            # Check gitignore contains .env.codepro
+            gitignore = project_dir / ".gitignore"
+            assert gitignore.exists()
+            content = gitignore.read_text()
+            assert ".env.codepro" in content
+
+
 class TestGitSetupRun:
     """Test GitSetupStep.run()."""
 

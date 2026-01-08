@@ -38,10 +38,10 @@ def get_alias_line(shell_type: str) -> str:
             f"{CCP_ALIAS_MARKER}\n"
             "alias ccp='"
             "if test -d .claude/rules; "
-            "nvm use 22; and clear; and dotenvx run claude; "
+            "nvm use 22; and clear; and dotenvx run -f .env -f .env.codepro -- claude; "
             "else if test -d /workspaces; "
             'set ccp_dir ""; for d in /workspaces/*/; test -d "$d.claude/rules"; and set ccp_dir "$d"; and break; end; '
-            'if test -n "$ccp_dir"; cd "$ccp_dir"; and nvm use 22; and clear; and dotenvx run claude; '
+            'if test -n "$ccp_dir"; cd "$ccp_dir"; and nvm use 22; and clear; and dotenvx run -f .env -f .env.codepro -- claude; '
             'else; echo "Error: No CCP project found in /workspaces"; end; '
             "else; "
             'echo "Error: Not a Claude CodePro project. Please cd to a CCP-enabled project first."; '
@@ -52,10 +52,10 @@ def get_alias_line(shell_type: str) -> str:
             f"{CCP_ALIAS_MARKER}\n"
             "alias ccp='"
             "if [ -d .claude/rules ]; then "
-            "nvm use 22 && clear && dotenvx run claude; "
+            "nvm use 22 && clear && dotenvx run -f .env -f .env.codepro -- claude; "
             "elif [ -d /workspaces ]; then "
             'ccp_dir=""; for d in /workspaces/*/; do [ -d "$d.claude/rules" ] && ccp_dir="$d" && break; done; '
-            'if [ -n "$ccp_dir" ]; then cd "$ccp_dir" && nvm use 22 && clear && dotenvx run claude; '
+            'if [ -n "$ccp_dir" ]; then cd "$ccp_dir" && nvm use 22 && clear && dotenvx run -f .env -f .env.codepro -- claude; '
             'else echo "Error: No CCP project found in /workspaces"; fi; '
             "else "
             'echo "Error: Not a Claude CodePro project. Please cd to a CCP-enabled project first."; '

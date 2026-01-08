@@ -215,6 +215,7 @@ class GitSetupStep(BaseStep):
                 gitignore.write_text(
                     """# Environment
                         .env
+                        .env.codepro
                         .env.local
                         .env.*.local
 
