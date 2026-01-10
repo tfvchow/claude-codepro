@@ -46,9 +46,9 @@ echo -e 'export PATH=$QLTY_INSTALL/bin:$PATH' >> ~/.zshrc
 echo "Installing CodeRabbit CLI..."
 bash -c "$(curl -fsSL https://cli.coderabbit.ai/install.sh)"
 
-# Run Claude CodePro installer from release
-echo "Running Claude CodePro installer..."
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/tfvchow/claude-codepro/v3.2.11/install.sh)"
+# Run Claude CodePro installer (local mode for development)
+echo "Running Claude CodePro installer (local)..."
+cd "${WORKSPACE_ROOT}" && uv run python -m installer.cli install --local
 
 echo ""
 echo "======================================================================"
