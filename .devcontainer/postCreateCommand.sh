@@ -46,9 +46,9 @@ echo -e 'export PATH=$QLTY_INSTALL/bin:$PATH' >> ~/.zshrc
 echo "Installing CodeRabbit CLI..."
 bash -c "$(curl -fsSL https://cli.coderabbit.ai/install.sh)"
 
-# Run upstream Claude CodePro installer
+# Run Claude CodePro installer from release
 echo "Running Claude CodePro installer..."
-bash -c "$(curl -fsSL https://raw.githubusercontent.com/maxritter/claude-codepro/v3.2.11/install.sh)"
+bash -c "$(curl -fsSL https://raw.githubusercontent.com/tfvchow/claude-codepro/v3.2.11/install.sh)"
 
 echo ""
 echo "======================================================================"
