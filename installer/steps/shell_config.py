@@ -34,15 +34,17 @@ def get_alias_line(shell_type: str) -> str:
 
     Note: Rules are now natively loaded by Claude Code from .claude/rules/*.md
     """
+    # Load both .env and .env.codepro (if they exist) for API keys
+    dotenvx_cmd = "dotenvx run -f .env -f .env.codepro --"
     claude_cmd = (
         "if [ -f .claude/scripts/wrapper.py ]; then "
-        "dotenvx run -- python3 .claude/scripts/wrapper.py; "
-        "else dotenvx run -- claude; fi"
+        f"{dotenvx_cmd} python3 .claude/scripts/wrapper.py; "
+        f"else {dotenvx_cmd} claude; fi"
     )
     claude_cmd_fish = (
         "if test -f .claude/scripts/wrapper.py; "
-        "dotenvx run -- python3 .claude/scripts/wrapper.py; "
-        "else; dotenvx run -- claude; end"
+        f"{dotenvx_cmd} python3 .claude/scripts/wrapper.py; "
+        f"else; {dotenvx_cmd} claude; end"
     )
 
     if shell_type == "fish":

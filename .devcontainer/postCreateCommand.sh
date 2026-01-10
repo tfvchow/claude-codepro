@@ -22,6 +22,29 @@ fi
 [ -f /root/.claude/.claude.json ] || echo '{}' > /root/.claude/.claude.json
 ln -sf /root/.claude/.claude.json /root/.claude.json
 
+# Setup claude-mem data persistence across devcontainer rebuilds.
+# claude-mem stores SQLite DB and vector DB in ~/.claude-mem/ which is NOT
+# in the persisted volume. We symlink it to the persisted /root/.claude/ volume.
+echo "Setting up claude-mem data persistence..."
+CLAUDE_MEM_PERSIST="/root/.claude/claude-mem-data"
+CLAUDE_MEM_DIR="/root/.claude-mem"
+
+# Create target directory in persisted volume
+mkdir -p "$CLAUDE_MEM_PERSIST"
+
+# If .claude-mem exists as a real directory (not symlink), migrate data
+if [ -d "$CLAUDE_MEM_DIR" ] && [ ! -L "$CLAUDE_MEM_DIR" ]; then
+    echo "Migrating existing claude-mem data to persisted volume..."
+    # Copy contents to persisted location (preserve existing data in target)
+    cp -rn "$CLAUDE_MEM_DIR"/* "$CLAUDE_MEM_PERSIST"/ 2>/dev/null || true
+    rm -rf "$CLAUDE_MEM_DIR"
+fi
+
+# Create symlink (remove stale symlink if exists)
+[ -L "$CLAUDE_MEM_DIR" ] && rm "$CLAUDE_MEM_DIR"
+ln -s "$CLAUDE_MEM_PERSIST" "$CLAUDE_MEM_DIR"
+echo "claude-mem data will persist at $CLAUDE_MEM_PERSIST"
+
 # Enable dotenv plugin for automatic .env loading
 if ! grep -q "plugins=.*dotenv" ~/.zshrc 2>/dev/null; then
     echo "Configuring dotenv zsh plugin..."
