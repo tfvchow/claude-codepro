@@ -1,12 +1,16 @@
 ---
+name: verify
 description: Run tests and fix issues end-to-end with Claude CodePro
-model: opus
 ---
 # VERIFY MODE: Verification and Quality Assurance Process with Code Review
 
 > **WARNING: DO NOT use the Task tool with any subagent_type (Explore, Plan, general-purpose).**
 > Perform ALL verification yourself using direct tool calls (Read, Grep, Glob, Bash, MCP tools).
 > Sub-agents lose context and make verification inconsistent.
+
+**Available MCP Tools:**
+- **Context7** - Library documentation lookup (`resolve-library-id`, `query-docs`)
+- **Firecrawl** - Web search and scraping (`firecrawl_search`, `firecrawl_scrape`) for researching issues
 
 ## The Process
 
@@ -26,19 +30,16 @@ Run integration tests and fix any failures immediately.
 
 **Common issues:** Database connections, mock configuration, missing test data
 
-### Step 3: Execute the Actual Program (MANDATORY)
+### Step 3: Build and Execute the Actual Program (MANDATORY)
 
 **⚠️ CRITICAL: Tests passing ≠ Program works**
 
 Run the actual program and verify real output.
 
-**If serious bugs (NOT simple fixes):**
-1. Update plan with bug fixes as new tasks
-2. Set plan status to `PENDING`
-3. Tell user: "Found [N] bugs. Run `/clear` → `/implement [plan]`"
-4. STOP
-
-**If simple fixes:** Fix directly, re-run, continue
+**If bugs are found:**
+1. Fix bugs immediately (no need to add tasks for minor fixes)
+2. Re-run to verify the fix worked
+3. Continue verification - do not stop or hand off to user
 
 ### Step 3a: Feature Parity Check (if applicable)
 
@@ -77,11 +78,6 @@ This is a serious issue - the implementation is incomplete.
    - ...
 
    The plan has been updated with [N] new tasks.
-
-   Next steps:
-   1. Run `/clear` to reset context
-   2. Run `/implement @docs/plans/[plan-file].md` to implement missing features
-   3. Run `/verify @docs/plans/[plan-file].md` again after implementation
    ```
 
 4. **STOP** - Do not continue verification
@@ -171,20 +167,7 @@ Verify test coverage meets requirements.
 
 ### Step 7: Run Quality Checks
 
-**Linting & Type Checking:**
-```bash
-ruff check . --fix
-mypy src --strict
-```
-
-**CodeRabbit (if available):**
-```bash
-coderabbit --prompt-only --type uncommitted
-```
-
-Focus on **critical and high severity** issues only. Medium/low can be documented but don't block completion.
-
-**If issues found:** Fix immediately, re-run until clean
+Run automated quality tools and fix any issues found.
 
 ### Step 8: Code Review Simulation
 
@@ -233,14 +216,14 @@ curl -X DELETE http://localhost:8000/api/resource/1
 
 **Run everything one more time:**
 - All tests
-- Program execution
+- Program build and execution
 - Diagnostics
 - Call chain validation
 
 **Success criteria:**
 - All tests passing
 - No diagnostics errors
-- Program executes successfully with correct output
+- Program builds and executes successfully with correct output
 - Coverage ≥ 80%
 - All Definition of Done criteria met
 - Code review checklist complete
@@ -267,7 +250,9 @@ curl -X DELETE http://localhost:8000/api/resource/1
    Edit the plan file and change the Status line:
    Status: COMPLETE  →  Status: PENDING
    ```
-3. Inform user to run `/clear` → `/implement [plan]` → `/verify [plan]`
-4. STOP - do not continue
+3. Inform user: "⚠️ Found issues. Fixing and re-verifying..."
+4. Automatically fix bugs one after another
+5. After fixing, **loop back to Step 1** and re-run verification
+6. **The /spec workflow handles this automatically** - do not tell user to run another command
 
 **Fix immediately | Test after each fix | No "should work" - verify it works | Keep fixing until green**

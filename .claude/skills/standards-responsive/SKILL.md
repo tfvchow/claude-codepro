@@ -1,9 +1,9 @@
 ---
-name: Frontend Responsive Design Standards
+name: Responsive Design Standards
 description: Build responsive, mobile-first layouts using fluid containers, flexible units, media queries, and touch-friendly design that works across all screen sizes. Use this skill when creating or modifying UI layouts, responsive grids, breakpoint styles, mobile navigation, or any interface that needs to adapt to different screen sizes. Apply when working with responsive CSS, media queries, viewport settings, flexbox/grid layouts, mobile-first styling, breakpoint definitions (mobile, tablet, desktop), touch target sizing, relative units (rem, em, %), image optimization for different screens, or testing layouts across multiple devices. Use for any task involving multi-device support, responsive design patterns, or adaptive layouts.
 ---
 
-# Frontend Responsive Design Standards
+# Responsive Design Standards
 
 **Rule:** Mobile-first development with consistent breakpoints, fluid layouts, relative units, and touch-friendly targets.
 

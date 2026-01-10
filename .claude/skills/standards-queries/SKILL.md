@@ -1,9 +1,9 @@
 --
-name: Backend Queries Standards
+name: Queries Standards
 description: Write secure, optimized database queries using parameterized queries, eager loading to prevent N+1 problems, and strategic indexing for performance. Use this skill when writing SQL queries, ORM queries, database interactions, or optimizing data fetching logic. Apply when working with query files, repository patterns, data access layers, SQL statements, ORM methods (ActiveRecord, Sequelize, Prisma queries), JOIN operations, WHERE clauses, preventing SQL injection, implementing eager loading or includes, adding query timeouts, wrapping operations in transactions, or caching expensive queries. Use for any task involving database reads, writes, complex queries, query optimization, or data fetching performance.
 ---
 
-# Backend Queries Standards
+# Queries Standards
 
 **Core Rule:** Write secure, performant queries using parameterized statements, eager loading, and strategic indexing.
 
@@ -268,13 +268,13 @@ def get_user_stats(user_id):
     cached = cache.get(cache_key)
     if cached:
         return json.loads(cached)
-    
+
     # Expensive query
     stats = db.session.query(
         func.count(Post.id),
         func.sum(Post.views)
     ).filter(Post.user_id == user_id).first()
-    
+
     cache.setex(cache_key, 3600, json.dumps(stats))  # Cache 1 hour
     return stats
 ```
@@ -288,7 +288,7 @@ async function getUserStats(userId) {
     const cacheKey = `user_stats:${userId}`
     const cached = await client.get(cacheKey)
     if (cached) return JSON.parse(cached)
-    
+
     // Expensive query
     const stats = await Post.findAll({
         where: { userId },
@@ -297,7 +297,7 @@ async function getUserStats(userId) {
             [sequelize.fn('SUM', sequelize.col('views')), 'totalViews']
         ]
     })
-    
+
     await client.setEx(cacheKey, 3600, JSON.stringify(stats))  // Cache 1 hour
     return stats
 }

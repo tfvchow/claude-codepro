@@ -1,9 +1,9 @@
 ---
-name: Backend Models Standards
+name: Models Standards
 description: Define database models with clear naming, appropriate data types, constraints, relationships, and validation at multiple layers. Use this skill when creating or modifying database model files, ORM classes, schema definitions, or data model relationships. Apply when working with model files (e.g., models.py, models/, ActiveRecord classes, Prisma schema, Sequelize models), defining table structures, setting up foreign keys and relationships, configuring cascade behaviors, implementing model validations, adding timestamps, or working with database constraints (NOT NULL, UNIQUE, foreign keys). Use for any task involving data integrity enforcement, relationship definitions, or model-level data validation.
 ---
 
-# Backend Models Standards
+# Models Standards
 
 **Core Rule:** Models define data structure and integrity. Keep them focused on data representation, not business logic.
 
@@ -95,7 +95,7 @@ user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'))
 ```python
 class Order(Base):
     __tablename__ = 'orders'
-    
+
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), index=True)
     status = Column(String(50), index=True)  # Frequently filtered
@@ -216,7 +216,7 @@ def test_user_email_unique():
     user2 = User(email='test@example.com')
     session.add(user1)
     session.commit()
-    
+
     with pytest.raises(IntegrityError):
         session.add(user2)
         session.commit()
@@ -229,10 +229,10 @@ def test_user_orders_cascade_delete():
     order = Order(user=user)
     session.add(user)
     session.commit()
-    
+
     session.delete(user)
     session.commit()
-    
+
     assert session.query(Order).count() == 0
 ```
 

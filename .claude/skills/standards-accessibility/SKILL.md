@@ -1,9 +1,9 @@
 ---
-name: Frontend Accessibility Standards
+name: Accessibility Standards
 description: Build accessible user interfaces using semantic HTML, proper ARIA attributes, keyboard navigation, color contrast, and screen reader compatibility. Use this skill when creating or modifying frontend components, HTML templates, React/Vue/Svelte components, forms, interactive elements, navigation menus, modals, or any UI elements. Apply when working with HTML files, JSX/TSX components, template files, ensuring keyboard accessibility, implementing focus management, adding alt text to images, creating form labels, testing with screen readers, managing ARIA attributes, maintaining color contrast ratios, or building heading hierarchies. Use for any task involving UI accessibility compliance, WCAG standards, or inclusive design patterns.
 ---
 
-# Frontend Accessibility Standards
+# Accessibility Standards
 
 **Core Rule:** Build accessible interfaces that work for all users, including those using assistive technologies.
 
@@ -80,7 +80,7 @@ All interactive elements must be keyboard accessible.
 <button onClick={handleClick}>Click me</button>
 
 // Custom interactive elements need tabIndex
-<div 
+<div
   role="button"
   tabIndex={0}
   onClick={handleClick}
@@ -128,8 +128,8 @@ Every form input must have an associated label.
 
 <!-- aria-describedby for help text -->
 <label for="password">Password</label>
-<input 
-  id="password" 
+<input
+  id="password"
   type="password"
   aria-describedby="password-help"
 />
@@ -162,8 +162,8 @@ Provide descriptive alt text that conveys the image's purpose.
 <img src="decoration.png" role="presentation" />
 
 <!-- Complex images need longer descriptions -->
-<img 
-  src="architecture.png" 
+<img
+  src="architecture.png"
   alt="System architecture diagram"
   aria-describedby="arch-description"
 />
@@ -296,27 +296,27 @@ Manage focus in dynamic interfaces to maintain keyboard navigation flow.
 ```jsx
 function Modal({ isOpen, onClose, children }) {
   const modalRef = useRef();
-  
+
   useEffect(() => {
     if (isOpen) {
       // Save previously focused element
       const previousFocus = document.activeElement;
-      
+
       // Move focus to modal
       modalRef.current?.focus();
-      
+
       // Trap focus within modal
       // (use library like focus-trap-react)
-      
+
       return () => {
         // Restore focus when modal closes
         previousFocus?.focus();
       };
     }
   }, [isOpen]);
-  
+
   return (
-    <div 
+    <div
       ref={modalRef}
       role="dialog"
       aria-modal="true"

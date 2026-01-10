@@ -1,9 +1,9 @@
 ---
-name: Testing Anti Patterns
+name: Testing Standards
 description: Prevent common testing anti-patterns that undermine test effectiveness and code quality by ensuring tests verify real behavior rather than mock behavior, keeping production code free from test-only pollution, and enforcing thoughtful mocking strategies. Use this skill when writing or modifying any test files (.test.ts, .test.js, .spec.ts, _test.py, test_*.py, *_test.go, *_spec.rb), when adding mock objects, stubs, spies, or test doubles to test suites, when considering adding methods or properties to production classes that are only called from test code, when setting up complex test fixtures or test data, when tests are failing and you're tempted to adjust mocks to make them pass, when deciding how to isolate code under test from external dependencies, when implementing dependency injection or test seams, during code reviews when reviewing test implementation and mocking strategies, when refactoring tests that have become brittle or hard to maintain, when test setup code is becoming longer than the actual test assertions, or when choosing between integration tests with real components versus unit tests with mocks.
 ---
 
-# Testing Anti-Patterns
+# Testing Standards
 
 **Rule:** Test real behavior, not mock behavior. Never pollute production code with test-only methods.
 
@@ -109,7 +109,7 @@ afterEach(() => cleanupSession(session));
 BEFORE adding method to production class:
   1. Search codebase: Is this method only called from test files?
   2. Ask: Does this class own this resource's lifecycle?
-  
+
   IF only used in tests OR class doesn't own lifecycle:
     STOP - Create test utility function instead
 ```
@@ -151,12 +151,12 @@ BEFORE mocking:
   1. List method's side effects (DB writes, file I/O, API calls, state changes)
   2. Identify what test actually needs (duplicate detection needs config write)
   3. Mock ONLY external/slow operations, preserve test dependencies
-  
+
   IF unsure what test needs:
     Run with real implementation FIRST
     Observe required behavior
     THEN mock minimally at lowest level
-  
+
   Red flags indicating wrong approach:
     - "Mock this to be safe"
     - "Might be slow, better mock"
@@ -201,7 +201,7 @@ BEFORE creating mock data:
   2. Include ALL fields from actual structure
   3. Use realistic values (not null/undefined unless API returns them)
   4. Verify mock matches real schema completely
-  
+
   IF uncertain about structure:
     - Examine real API response
     - Include all documented fields

@@ -1,9 +1,9 @@
 ---
-name: Frontend CSS Standards
+name: CSS Standards
 description: Write consistent, maintainable CSS following the project's methodology (Tailwind, BEM, utility classes, CSS modules) with design system adherence and performance optimization. Use this skill when writing or modifying styles, CSS files, utility classes, CSS-in-JS, styled components, or any styling code. Apply when working with .css, .scss, .module.css files, Tailwind utility classes, styled-components, CSS modules, design tokens (colors, spacing, typography), framework-specific styling approaches, optimizing CSS for production, implementing CSS purging or tree-shaking, or avoiding style overrides. Use for any task involving visual styling, layout styling, design system implementation, or CSS organization.
 ---
 
-# Frontend CSS Standards
+# CSS Standards
 
 **Rule:** Follow project CSS methodology consistently, leverage framework patterns, maintain design system tokens.
 

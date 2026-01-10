@@ -1,9 +1,9 @@
 ---
-name: Backend Python Standards
+name: Python Standards
 description: Apply Python tooling standards including uv package management, pytest testing, ruff/mypy code quality, one-line docstrings, and self-documenting code practices. Use this skill when working with Python backend code, managing dependencies, running tests, or ensuring code quality. Apply when installing packages, writing tests, formatting code, type checking, adding docstrings, organizing imports, or deciding whether to create new files vs. extending existing ones. Use for any Python development task requiring adherence to tooling standards and best practices.
 ---
 
-# Backend Python Standards
+# Python Standards
 
 **Core Rule:** Use uv for all package operations, pytest for testing, ruff for formatting/linting. Write self-documenting code with minimal comments.
 
@@ -97,7 +97,7 @@ def calculate_discount(price: float, rate: float) -> float:
 def process_payment(order_id: str, payment_method: str) -> PaymentResult:
     """
     Process payment for order using specified method.
-    
+
     Validates payment method, charges customer, updates order status,
     and sends confirmation email. Rolls back on any failure.
     """
@@ -109,7 +109,7 @@ def process_payment(order_id: str, payment_method: str) -> PaymentResult:
 # BAD - docstring adds no value
 def get_user_email(user_id: str) -> str:
     """Get the email address for a user by their ID."""
-    
+
 # GOOD - name is self-explanatory
 def get_user_email(user_id: str) -> str:
     return db.query(User).filter_by(id=user_id).first().email

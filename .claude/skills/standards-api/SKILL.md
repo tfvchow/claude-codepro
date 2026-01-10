@@ -1,9 +1,9 @@
 ---
-name: Backend API Standards
+name: API Standards
 description: Design and implement RESTful API endpoints following REST principles with proper HTTP methods, status codes, and resource-based URLs. Use this skill when creating or modifying API endpoints, route handlers, controllers, or API configuration files. Apply when working on REST API design, endpoint implementations, API versioning, request/response handling, HTTP method routing (GET, POST, PUT, PATCH, DELETE), query parameter filtering, API rate limiting, or any file that defines API routes such as routes.py, api.js, controllers/, endpoints/, or API documentation files.
 ---
 
-# Backend API Standards
+# API Standards
 
 Apply these standards when creating or modifying API endpoints, route handlers, and controllers.
 

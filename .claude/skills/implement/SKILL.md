@@ -1,6 +1,6 @@
 ---
+name: implement
 description: Execute implementation plans in batches with Claude CodePro
-model: opus
 ---
 # IMPLEMENT MODE: Task Execution with Mandatory Context Gathering
 
@@ -8,7 +8,17 @@ model: opus
 > Perform ALL exploration and implementation yourself using direct tool calls (Read, Grep, Glob, MCP tools).
 > Sub-agents lose context and make implementation inconsistent.
 
-**Execute ALL tasks continuously. NO stopping unless context manager says context is full.**
+## Quality Over Speed - CRITICAL
+
+**NEVER rush or compromise quality due to context pressure.**
+
+- Context warnings are informational, not emergencies
+- Work spans sessions seamlessly via plan file and continuation mechanisms
+- Finish the CURRENT task with full quality, then hand off cleanly
+- Do NOT skip tests, compress code, or cut corners to "beat" context limits
+- **Quality is the #1 metric** - a well-done task split across sessions beats rushed work
+
+**Execute tasks continuously with full quality. Hand off cleanly when context is high.**
 
 ## ⛔ CRITICAL: Task Completion Tracking is MANDATORY
 
@@ -43,25 +53,29 @@ Update counts:
    - Diagnostics: `mcp__ide__getDiagnostics()`
    - Plan progress: Check for `[x]` completed tasks
 
-### 🔧 MCP Tools for Implementation
+### 🔧 Tools for Implementation
 
-**Use these MCP servers throughout implementation:**
+**Use these tools throughout implementation:**
 
 | Tool | When to Use | Example |
 |------|-------------|---------|
-| **claude-context** | Find related code | `mcp__claude-context__search_code` - "error handling patterns" |
-| **Ref** | Library API lookup | `mcp__Ref__ref_search_documentation` - "pytest fixtures" |
-| **tavily** | Research solutions | `mcp__tavily__tavily-search` - Debug errors, find examples |
+| **Context7** | Library API lookup | Use `resolve-library-id` then `query-docs` - "pytest fixtures" |
+| **Firecrawl** | Web content/research | Use `firecrawl_search` for solutions, `firecrawl_scrape` for docs |
 
-**Before starting, ensure codebase is indexed for semantic search:**
-```
-mcp__claude-context__get_indexing_status(path="/absolute/path/to/project")
+**Firecrawl MCP Tools (preferred for web content):**
+- `firecrawl_search` - Search web for solutions, debug errors, find examples
+- `firecrawl_scrape` - Fetch documentation pages, code examples, API references
+- `firecrawl_extract` - Extract structured data from web pages
+
+**Before starting, verify Vexor is available for semantic search:**
+```bash
+vexor --version
 ```
 
 **During implementation:**
-- Use `mcp__claude-context__search_code` to find similar implementations and patterns
-- Use `mcp__Ref__ref_search_documentation` when unsure about library/framework APIs
-- Use `mcp__tavily__tavily-search` to research error messages or find solutions
+- Use `vexor search "query" --mode code` to find similar implementations and patterns
+- Use Context7 (`resolve-library-id` then `query-docs`) when unsure about library/framework APIs
+- Use Firecrawl (`firecrawl_search`, `firecrawl_scrape`) to research error messages, find solutions, or fetch documentation
 
 ## ⚠️ CRITICAL: Migration/Refactoring Tasks
 
@@ -186,9 +200,8 @@ Before marking complete:
    Edit the plan file and change the Status line:
    Status: PENDING  →  Status: COMPLETE
    ```
-   This triggers the Rules Supervisor on your next response.
-4. Inform user: "✅ All tasks complete. Run `/verify`"
-5. DO NOT run /verify yourself
+4. Inform user: "✅ All tasks complete. Proceeding to verification..."
+5. **The /spec workflow will automatically continue to /verify** - do not tell user to run another command
 
 ### Migration Completion Checklist
 

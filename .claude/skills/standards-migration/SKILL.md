@@ -1,9 +1,9 @@
 ---
-name: Backend Migration Standards
+name: Migration Standards
 description: Create and manage database migrations with reversible changes, proper naming conventions, and zero-downtime deployment strategies. Use this skill when creating database migration files, modifying schema, adding or removing tables/columns, managing indexes, or handling data migrations. Apply when working with migration files (e.g., db/migrate/, migrations/, alembic/, sequelize migrations), schema changes, database versioning, rollback implementations, or when you need to ensure backwards compatibility during deployments. Use for any task involving database structure changes, index creation, constraint modifications, or data transformation scripts.
 ---
 
-# Database Migration Standards
+# Migration Standards
 
 Apply these rules when creating or modifying database migrations. Migrations are permanent records of schema evolution and must be treated with extreme care.
 
@@ -99,7 +99,7 @@ op.create_index('idx_users_email', 'users', ['email'], mysql_algorithm='INPLACE'
 def upgrade():
     batch_size = 1000
     connection = op.get_bind()
-    
+
     while True:
         result = connection.execute(
             "UPDATE users SET status = 'active' WHERE status IS NULL LIMIT %s",

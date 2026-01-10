@@ -1,9 +1,9 @@
 ---
-name: Frontend Components Standards
+name: Components Standards
 description: Design reusable, composable UI components following single responsibility principle with clear interfaces, encapsulation, and minimal props. Use this skill when creating or modifying frontend components in any framework (React, Vue, Svelte, web components) or component files. Apply when working with .jsx, .tsx, .vue, .svelte files in component directories (components/, src/components/, ui/, lib/), defining component props and interfaces, implementing component composition patterns, managing component-level state, creating reusable UI elements (buttons, forms, cards, modals), documenting component APIs, or refactoring components for better reusability and maintainability.
 ---
 
-# Frontend Components Standards
+# Components Standards
 
 **Core Rule:** Build small, focused components with single responsibility. Compose complex UIs from simple pieces.
 
@@ -56,10 +56,10 @@ Build complex UIs by combining simple components, not by adding props.
 
 **Bad - Configuration:**
 ```tsx
-<Card 
-  showHeader 
-  showFooter 
-  headerAlign="left" 
+<Card
+  showHeader
+  showFooter
+  headerAlign="left"
   footerAlign="right"
   headerColor="blue"
 >
@@ -110,12 +110,12 @@ interface ButtonProps {
   children: React.ReactNode
 }
 
-function Button({ 
-  variant = 'primary', 
+function Button({
+  variant = 'primary',
   size = 'md',
   disabled = false,
   onClick,
-  children 
+  children
 }: ButtonProps) {
   // Implementation
 }
@@ -286,7 +286,7 @@ Every reusable component needs:
 ```tsx
 /**
  * Primary button component for user actions.
- * 
+ *
  * @example
  * <Button variant="primary" onClick={handleSave}>
  *   Save Changes

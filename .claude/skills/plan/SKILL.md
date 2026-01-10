@@ -1,11 +1,11 @@
 ---
+name: plan
 description: Create a detailed implementation plan with exploration for Claude CodePro
-model: opus
 ---
 # PLAN MODE: Five-Phase Planning Process
 
 > **WARNING: DO NOT use the built-in `ExitPlanMode` or `EnterPlanMode` tools.**
-> This project has its own planning workflow using `/plan`, `/implement`, and `/verify` slash commands.
+> This project has its own planning workflow using `/plan`, `/implement`, and `/verify` skill commands that are automatically invoked via the `/spec` slash-command.
 > The built-in Claude Code plan mode tools write to different paths and are incompatible.
 > When planning is complete, simply inform the user and wait for confirmation - no special tool needed.
 
@@ -174,21 +174,27 @@ Questions:
 
 **Explore the codebase systematically.** Run explorations **one at a time** (sequentially, not in parallel).
 
-#### 🔧 MCP Tools for Exploration
+#### 🔧 Tools for Exploration
 
-**Use these MCP servers to gather context efficiently:**
+**Use these tools to gather context efficiently:**
 
 | Tool | When to Use | Example |
 |------|-------------|---------|
-| **claude-context** | Semantic code search | `mcp__claude-context__search_code` - Find implementations by concept |
-| **Ref** | Library/framework docs | `mcp__Ref__ref_search_documentation` - Look up API usage |
-| **tavily** | External research | `mcp__tavily__tavily-search` - Research best practices |
+| **Context7** | Library/framework docs | Use `resolve-library-id` then `query-docs` to look up API usage |
+| **Firecrawl** | Web scraping/content | Use `firecrawl_scrape` for single pages, `firecrawl_search` for research |
 
-**Before exploring, check if codebase is indexed:**
+**Firecrawl MCP Tools (preferred for web content):**
+- `firecrawl_scrape` - Single page content extraction (documentation, articles, code)
+- `firecrawl_search` - Web search with scraped results (research, finding solutions)
+- `firecrawl_map` - Discover all URLs on a website (site structure analysis)
+- `firecrawl_crawl` - Crawl entire website (comprehensive extraction)
+- `firecrawl_extract` - Structured data extraction with schema
+
+**Before exploring, verify Vexor is available:**
+```bash
+vexor --version
 ```
-mcp__claude-context__get_indexing_status(path="/absolute/path/to/project")
-```
-If not indexed, run: `mcp__claude-context__index_codebase(path="...")`
+First search will trigger automatic indexing. Use `vexor search "query" --mode code` for semantic code search.
 
 **Exploration areas (in order):**
 
@@ -199,14 +205,14 @@ If not indexed, run: `mcp__claude-context__index_codebase(path="...")`
 
 **⚠️ CRITICAL: NO SUB-AGENTS DURING PLANNING**
 - **DO NOT use the Task tool with any subagent_type** during planning
-- Perform ALL exploration yourself using direct tool calls (Read, Grep, Glob, MCP tools)
+- Perform ALL exploration yourself using direct tool calls (Read, Grep, Glob, Context7, Firecrawl)
 - Sub-agents lose context and make planning inconsistent
 - You must maintain full context throughout the planning process
 
 **For each area:**
-- Use `mcp__claude-context__search_code` for semantic searches like "authentication middleware" or "database connection handling"
-- Use `mcp__Ref__ref_search_documentation` when you need library/framework API details
-- Use `mcp__tavily__tavily-search` for researching patterns, best practices, or unfamiliar technologies
+- Use `vexor search "query" --mode code` for semantic searches like "authentication middleware" or "database connection handling"
+- Use Context7 (`resolve-library-id` then `query-docs`) when you need library/framework API details
+- Use Firecrawl (`firecrawl_search`, `firecrawl_scrape`) for web research, fetching documentation, or extracting code examples
 - Use `Read`, `Grep`, `Glob` tools directly for file exploration
 - Document hypotheses (not conclusions)
 - Note full file paths for relevant code
@@ -251,9 +257,11 @@ Questions:
 
 ### Phase 3: Implementation Planning
 
-**CRITICAL: Task Count Limit**
-- **Maximum: 10-12 tasks per plan**
-- If breakdown exceeds 12 tasks, use AskUserQuestion to ask user to split into multiple features
+**Task Count Guidance**
+- **Aim for 10-12 tasks** as a general guideline for focused plans
+- Avoid bloating plans with unnecessary or overly granular tasks
+- If the work genuinely requires more tasks, that's fine - the `/spec` workflow handles multi-session execution, so longer plans will be executed across multiple context windows automatically
+- Focus on keeping tasks meaningful and necessary, not on hitting a specific number
 
 **Task Structure:**
 ```markdown
@@ -296,15 +304,19 @@ Questions:
 ```markdown
 # [Feature Name] Implementation Plan
 
-> **IMPORTANT:** Start with fresh context. Run `/clear` before `/implement`.
-
 Created: [Date]
 Status: PENDING
+Approved: No
 
 > **Status Lifecycle:** PENDING → COMPLETE → VERIFIED
 > - PENDING: Initial state, awaiting implementation
 > - COMPLETE: All tasks implemented (set by /implement)
 > - VERIFIED: Rules supervisor passed (set automatically)
+>
+> **Approval Gate:** Implementation CANNOT proceed until `Approved: Yes`
+> - Claude will ask for your approval after presenting the plan
+> - You can request changes before approving
+> - Claude updates this field automatically when you approve
 
 ## Summary
 **Goal:** [One sentence describing what this builds]
@@ -386,26 +398,45 @@ Status: PENDING
 - [Any remaining questions for the user]
 - [Decisions deferred to implementation]
 
----
-**USER: Please review this plan. Edit any section directly, then confirm to proceed.**
 ```
 
 ### Phase 5: Implementation Handoff
 
+**⛔ MANDATORY APPROVAL GATE - This is NON-NEGOTIABLE**
+
 **After saving plan:**
 
-1. **Inform user:** "Plan saved to docs/plans/YYYY-MM-DD-<feature>.md"
-2. **Request review:** Ask user to review and edit the plan
-3. **Wait for explicit confirmation** before proceeding
+1. **Summarize the plan** - Provide a brief overview of:
+   - What will be built (goal)
+   - Key tasks (numbered list)
+   - Tech stack / approach
 
-**After user confirms:**
+2. **Use AskUserQuestion to request approval:**
+   ```
+   Question: "Do you approve this plan for implementation?"
+   Header: "Plan Review"
+   Options:
+   - "Yes, proceed with implementation" - I've reviewed the plan and it looks good
+   - "No, I need to make changes" - I want to edit the plan first
+   ```
 
-1. **Re-read the plan file completely** - User may have edited it
-2. **Note any changes** the user made
-3. **Acknowledge changes** before proceeding
-4. Provide next steps: "Ready for implementation. Run `/clear` then `/implement <plan-path>`"
+3. **Based on user response:**
 
-**DO NOT write or edit any implementation files until confirmed.**
+   **If user approves ("Yes, proceed..."):**
+   - Edit the plan file to change `Approved: No` to `Approved: Yes`
+   - Tell user: "Plan approved. Proceeding with implementation..."
+   - The /spec workflow will continue to /implement automatically
+
+   **If user wants changes ("No, I need to make changes"):**
+   - Tell user: "Please edit the plan file at `<plan-path>`, then say 'ready' when done"
+   - Wait for user to confirm they're done editing
+   - Re-read the plan file to see their changes
+   - Ask for approval again using AskUserQuestion
+
+4. **DO NOT proceed to implementation until user explicitly approves**
+
+**⚠️ CRITICAL: Claude handles the `Approved:` field update - user never edits it manually**
+**DO NOT write or edit any implementation files until approved.**
 
 
 ## Critical Rules
@@ -418,9 +449,10 @@ These rules are non-negotiable:
 4. **Run explorations sequentially** - One at a time, never in parallel
 5. **NEVER write implementation code during planning** - Planning and implementing are separate
 6. **NEVER assume - verify by reading files** - Hypotheses must be confirmed
-7. **ALWAYS get user confirmation before implementing** - User owns the decision
-8. **ALWAYS re-read the plan after user confirms** - They may have edited it
+7. **⛔ NEVER proceed without user approval** - Use AskUserQuestion to get explicit approval, then update `Approved: Yes` yourself
+8. **ALWAYS re-read the plan after user edits** - If they chose to make changes, re-read before asking again
 9. **The plan must be detailed enough that another developer could follow it**
-10. **NEVER use built-in ExitPlanMode or EnterPlanMode tools** - This project uses custom `/plan`, `/implement`, `/verify` slash commands. The built-in plan mode tools are incompatible with this workflow.
+10. **NEVER use built-in ExitPlanMode or EnterPlanMode tools** - This project uses custom `/plan`, `/implement`, `/verify` skill commands. The built-in plan mode tools are incompatible with this workflow. They are orchestrated by the `/spec` slash command.
 11. **FOR MIGRATIONS: Create Feature Inventory BEFORE tasks** - List every file, function, and class being replaced. Map each to a task. No unmapped features allowed.
 12. **"Out of Scope" ≠ "Don't implement"** - "Out of Scope: Changes to X" means migrate X as-is (still needs a task). Only "Out of Scope: Remove X" means no task needed (requires user confirmation).
+13. **Ask for approval after creating plan** - After Phase 5, use AskUserQuestion to get approval. If approved, update the file and let /spec continue automatically.
