@@ -8,8 +8,8 @@ import sys
 import time
 from pathlib import Path
 
-THRESHOLD_WARN = 85
-THRESHOLD_STOP = 95
+THRESHOLD_WARN = 80
+THRESHOLD_STOP = 90
 
 CACHE_FILE = Path("/tmp/.claude_context_cache.json")
 CACHE_TTL = 30
@@ -81,38 +81,38 @@ def get_actual_token_count(session_file: Path) -> int | None:
     return input_tokens + cache_creation + cache_read
 
 
-def get_cached_context() -> tuple[int, bool]:
-    """Get cached context value if fresh enough."""
+def get_cached_context(session_id: str) -> tuple[int, bool]:
+    """Get cached context value if fresh enough and for current session."""
     if CACHE_FILE.exists():
         try:
             with CACHE_FILE.open() as f:
                 cache = json.load(f)
-                if time.time() - cache.get("timestamp", 0) < CACHE_TTL:
+                if cache.get("session_id") == session_id and time.time() - cache.get("timestamp", 0) < CACHE_TTL:
                     return cache.get("tokens", 0), True
         except (json.JSONDecodeError, OSError):
             pass
     return 0, False
 
 
-def save_cache(tokens: int) -> None:
-    """Save context calculation to cache."""
+def save_cache(tokens: int, session_id: str) -> None:
+    """Save context calculation to cache with session ID."""
     try:
         with CACHE_FILE.open("w") as f:
-            json.dump({"tokens": tokens, "timestamp": time.time()}, f)
+            json.dump({"tokens": tokens, "timestamp": time.time(), "session_id": session_id}, f)
     except OSError:
         pass
 
 
 def run_context_monitor() -> int:
     """Run context monitoring and return exit code."""
-    cached_tokens, is_cached = get_cached_context()
+    session_id = get_current_session_id()
+    if not session_id:
+        return 0
+
+    cached_tokens, is_cached = get_cached_context(session_id)
     if is_cached:
         total_tokens = cached_tokens
     else:
-        session_id = get_current_session_id()
-        if not session_id:
-            return 0
-
         session_file = find_session_file(session_id)
         if not session_file:
             return 0
@@ -122,22 +122,25 @@ def run_context_monitor() -> int:
             return 0
 
         total_tokens = actual_tokens
-        save_cache(total_tokens)
+        save_cache(total_tokens, session_id)
 
     percentage = (total_tokens / 200000) * 100
 
     if percentage >= THRESHOLD_STOP:
         print("", file=sys.stderr)
-        print(f"{RED}CONTEXT LIMIT: {percentage:.0f}% ({total_tokens:,}/200k){NC}", file=sys.stderr)
-        print(f"{RED}MANDATORY: Wrap up current development NOW and update plan!{NC}", file=sys.stderr)
-        print(f"{RED}Then ask user to run /clear to reset context.{NC}", file=sys.stderr)
+        print(f"{RED}⚠️  CONTEXT {percentage:.0f}% - HANDOFF NOW (not optional){NC}", file=sys.stderr)
+        print(f"{RED}STOP current work. Your NEXT action must be:{NC}", file=sys.stderr)
+        print(f"{RED}1. Write /tmp/claude-continuation.md{NC}", file=sys.stderr)
+        print(f"{RED}2. Run: helper.py send-clear [--general | <plan-path>]{NC}", file=sys.stderr)
+        print(f"{RED}Do NOT summarize or explain - just execute handoff.{NC}", file=sys.stderr)
         return 2
 
     if percentage >= THRESHOLD_WARN:
         print("", file=sys.stderr)
-        print(f"{YELLOW}Context: {percentage:.0f}% ({total_tokens:,}/200k){NC}", file=sys.stderr)
-        print(f"{YELLOW}   Complete current task, no new feature work{NC}", file=sys.stderr)
-        print(f"{YELLOW}   Continue work and wrap up at 95% maximum{NC}", file=sys.stderr)
+        print(
+            f"{YELLOW}Context: {percentage:.0f}% - Finish current task with full quality, then hand off{NC}",
+            file=sys.stderr,
+        )
         return 2
 
     return 0
