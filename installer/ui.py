@@ -116,24 +116,21 @@ class Console:
         self._console.print()
 
         features = Text()
+        features.append("  ♾️  ", style="yellow")
+        features.append("Endless Mode", style="bold green")
+        features.append(" — Unlimited context across sessions, zero manual intervention\n", style="white")
         features.append("  📋 ", style="yellow")
-        features.append("Spec-Driven Workflow", style="bold green")
-        features.append(" — /plan, /implement, /verify commands\n", style="white")
+        features.append("Two Development Modes", style="bold green")
+        features.append(" — /spec for planning, Quick Mode for fast fixes\n", style="white")
         features.append("  💡 ", style="yellow")
         features.append("Modular Rules System", style="bold green")
         features.append(" — Standards + custom rules loaded as project memory\n", style="white")
-        features.append("  🔌 ", style="yellow")
-        features.append("MCP Servers", style="bold green")
-        features.append(" — Semantic search, Web Search, Code Search\n", style="white")
         features.append("  🛠️ ", style="yellow")
-        features.append("Quality Automation", style="bold green")
-        features.append(" — Post-edit hooks, linting, type checking\n", style="white")
-        features.append("  🪝 ", style="yellow")
-        features.append("Intelligent Hooks", style="bold green")
-        features.append(" — TDD Enforcer, Context Monitor, Persistent Memory\n", style="white")
-        features.append("  🏗️ ", style="yellow")
-        features.append("Dev Container", style="bold green")
-        features.append(" — Isolated environment with pre-configured tools", style="white")
+        features.append("Quality Hooks", style="bold green")
+        features.append(" — TDD enforcer, linting, type checking, context monitor\n", style="white")
+        features.append("  🔌 ", style="yellow")
+        features.append("Enhanced Capabilities", style="bold green")
+        features.append(" — Vexor, Context7, Firecrawl, LSP servers", style="white")
 
         panel = Panel(
             features,
@@ -143,6 +140,19 @@ class Console:
             title_align="left",
         )
         self._console.print(panel)
+        self._console.print()
+
+        license_text = Text()
+        license_text.append("  📜 ", style="yellow")
+        license_text.append("Dual License: ", style="bold white")
+        license_text.append("Free for individuals, freelancers & open source (AGPL-3.0)\n", style="green")
+        license_text.append("     ", style="white")
+        license_text.append("Companies with proprietary software require a ", style="dim white")
+        license_text.append("commercial license", style="bold yellow")
+        license_text.append(".\n", style="dim white")
+        license_text.append("     Contact: ", style="dim white")
+        license_text.append("mail@maxritter.net", style="cyan")
+        self._console.print(license_text)
         self._console.print()
 
     def set_total_steps(self, total: int) -> None:
@@ -304,7 +314,7 @@ class Console:
 
         default_str = "Y/n" if default else "y/N"
         self._console.print()
-        self._console.print(f"  [bold cyan]?[/bold cyan] {message} [{default_str}]: ", end="")
+        self._console.print(f"  [bold cyan]?[/bold cyan] {message} \\[{default_str}]: ", end="")
 
         try:
             tty = self._get_input_stream()

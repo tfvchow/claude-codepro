@@ -69,12 +69,15 @@ class FinalizeStep(BaseStep):
             [
                 "Claude CodePro rules",
                 "Shell alias (ccp)",
-                "MCP configuration",
+                "Endless Mode (unlimited context)",
             ]
         )
 
         if ctx.install_python:
             installed_items.append("Python development tools")
+
+        if ctx.install_typescript:
+            installed_items.append("TypeScript quality hooks")
 
         ui.success_box("Installation Complete!", installed_items)
 
@@ -88,32 +91,30 @@ class FinalizeStep(BaseStep):
                     f'     docker exec -it $(docker ps --filter "name={project_slug}" -q) zsh',
                 ),
                 ("Start Claude CodePro", "Run: ccp"),
-                (
-                    "Configure settings",
-                    "Run: /config and set:\n"
-                    "     • Auto-compact = false\n"
-                    "     • Verbose output = true\n"
-                    "     • Respect .gitignore in file picker = false\n"
-                    "     • Auto-connect to IDE (external terminal) = true",
-                ),
-                (
-                    "Enable claude-mem plugin",
-                    "Run: /plugins → Marketplaces → thedotmack → 'Update marketplace' & 'Enable auto-update'\n"
-                    "     Then restart Claude Code with: ccp\n"
-                    "     After restart: /plugins → Installed → claude-mem → Enable plugin\n"
-                    "     Open http://localhost:37777/ to see the Memory Web UI",
-                ),
-                ("Verify MCP servers", "Run: /mcp → If any fail, click on the server and select 'Reconnect'"),
                 ("Connect IDE", "Run: /ide → Enables real-time diagnostics"),
-                ("Initialize project", "Run: /setup → Scans and indexes codebase"),
-                ("Start building!", "/plan → /implement → /verify"),
+                (
+                    "Spec-Driven Mode",
+                    '/spec "your task" → For new features with planning and verification',
+                ),
+                (
+                    "Quick Mode",
+                    "Just chat → For bug fixes and small changes without a spec",
+                ),
             ]
         )
 
         ui.rule()
         ui.print()
         ui.print("  [bold yellow]⭐ Star this repo:[/bold yellow] https://github.com/tfvchow/claude-codepro")
-        ui.print("  [bold cyan]🐛 Bugs, Features, PRs:[/bold cyan] https://github.com/tfvchow/claude-codepro/issues")
+        ui.print()
+
+        ui.print("  [bold white]📜 License:[/bold white] Free for individuals, freelancers & open source (AGPL-3.0)")
+        ui.print(
+            "             Companies with proprietary software require a [bold yellow]commercial license[/bold yellow]."
+        )
+        ui.print("             Contact: [cyan]mail@maxritter.net[/cyan]")
+        ui.print()
+        ui.print("  [dim]💝 Enjoying Claude CodePro? Consider sponsoring: https://github.com/sponsors/maxritter[/dim]")
         ui.print()
         ui.print(f"  [dim]Installed version: {__version__}[/dim]")
         ui.print()

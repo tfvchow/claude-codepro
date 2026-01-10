@@ -2,14 +2,69 @@
 
 from __future__ import annotations
 
+import json
+import shutil
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from installer.downloads import DownloadConfig, download_file, get_repo_files
 from installer.steps.base import BaseStep
 
 if TYPE_CHECKING:
     from installer.context import InstallContext
+
+SETTINGS_FILE = "settings.local.json"
+PYTHON_CHECKER_HOOK = "python3 .claude/hooks/file_checker_python.py"
+TYPESCRIPT_CHECKER_HOOK = "python3 .claude/hooks/file_checker_ts.py"
+HOOKS_PATH_PATTERN = ".claude/hooks/"
+SOURCE_REPO_PATH = "/workspaces/claude-codepro/.claude/hooks/"
+
+
+def patch_hook_paths(content: str, project_dir: Path) -> str:
+    """Patch hook paths to use absolute paths for the target project.
+
+    Handles both relative paths (.claude/hooks/) and existing absolute paths
+    from the source repo (/workspaces/claude-codepro/.claude/hooks/).
+    """
+    abs_hooks_path = str(project_dir / ".claude" / "hooks") + "/"
+
+    content = content.replace(SOURCE_REPO_PATH, abs_hooks_path)
+
+    content = content.replace(" " + HOOKS_PATH_PATTERN, " " + abs_hooks_path)
+    content = content.replace('"' + HOOKS_PATH_PATTERN, '"' + abs_hooks_path)
+
+    return content
+
+
+def process_settings(settings_content: str, install_python: bool, install_typescript: bool) -> str:
+    """Process settings JSON, optionally removing Python/TypeScript-specific hooks.
+
+    Args:
+        settings_content: Raw JSON content of the settings file
+        install_python: Whether Python support is being installed
+        install_typescript: Whether TypeScript support is being installed
+
+    Returns:
+        Processed JSON string with hooks removed based on install flags
+    """
+    config: dict[str, Any] = json.loads(settings_content)
+
+    files_to_remove: list[str] = []
+    if not install_python:
+        files_to_remove.append("file_checker_python.py")
+    if not install_typescript:
+        files_to_remove.append("file_checker_ts.py")
+
+    if files_to_remove:
+        try:
+            for hook_group in config["hooks"]["PostToolUse"]:
+                hook_group["hooks"] = [
+                    h for h in hook_group["hooks"] if not any(f in h.get("command", "") for f in files_to_remove)
+                ]
+        except (KeyError, TypeError, AttributeError):
+            pass
+
+    return json.dumps(config, indent=2) + "\n"
 
 
 class ClaudeFilesStep(BaseStep):
@@ -55,11 +110,15 @@ class ClaudeFilesStep(BaseStep):
 
         categories: dict[str, list[str]] = {
             "commands": [],
+            "rules_standard": [],
             "rules": [],
             "hooks": [],
             "skills": [],
+            "scripts": [],
             "other": [],
         }
+
+        settings_path: str | None = None
 
         for file_path in claude_files:
             if not file_path:
@@ -71,30 +130,69 @@ class ClaudeFilesStep(BaseStep):
             if file_path.endswith(".pyc"):
                 continue
 
+            if Path(file_path).name == SETTINGS_FILE:
+                settings_path = file_path
+                continue
+
             if not ctx.install_python:
                 if "file_checker_python.py" in file_path:
                     continue
                 if "python-rules.md" in file_path:
                     continue
 
+            if not ctx.install_typescript:
+                if "file_checker_ts.py" in file_path:
+                    continue
+                if "typescript-rules.md" in file_path:
+                    continue
+
             if "/commands/" in file_path:
                 categories["commands"].append(file_path)
+            elif "/rules/standard/" in file_path:
+                categories["rules_standard"].append(file_path)
             elif "/rules/" in file_path:
                 categories["rules"].append(file_path)
             elif "/hooks/" in file_path:
                 categories["hooks"].append(file_path)
             elif "/skills/" in file_path:
                 categories["skills"].append(file_path)
+            elif "/scripts/" in file_path:
+                categories["scripts"].append(file_path)
             else:
                 categories["other"].append(file_path)
 
         category_names = {
             "commands": "slash commands",
-            "rules": "rules",
+            "rules_standard": "standard rules",
+            "rules": "custom rules",
             "hooks": "hooks",
             "skills": "skills",
+            "scripts": "scripts",
             "other": "config files",
         }
+
+        source_is_destination = (
+            config.local_mode and config.local_repo_dir and config.local_repo_dir.resolve() == ctx.project_dir.resolve()
+        )
+
+        if not source_is_destination:
+            dirs_to_clear = [
+                ("commands", categories["commands"], ctx.project_dir / ".claude" / "commands"),
+                ("hooks", categories["hooks"], ctx.project_dir / ".claude" / "hooks"),
+                ("scripts", categories["scripts"], ctx.project_dir / ".claude" / "scripts"),
+                ("skills", categories["skills"], ctx.project_dir / ".claude" / "skills"),
+                ("standard rules", categories["rules_standard"], ctx.project_dir / ".claude" / "rules" / "standard"),
+            ]
+
+            for name, has_files, dir_path in dirs_to_clear:
+                if dir_path.exists() and has_files:
+                    if ui:
+                        ui.status(f"Clearing old {name}...")
+                    try:
+                        shutil.rmtree(dir_path)
+                    except (OSError, IOError) as e:
+                        if ui:
+                            ui.warning(f"Failed to clear {name} directory: {e}")
 
         for category, files in categories.items():
             if not files:
@@ -118,6 +216,36 @@ class ClaudeFilesStep(BaseStep):
                         installed_files.append(str(dest_file))
                     else:
                         failed_files.append(file_path)
+
+        settings_dest = ctx.project_dir / ".claude" / "settings.local.json"
+
+        if settings_path:
+            if ui:
+                with ui.spinner("Installing settings..."):
+                    success = self._install_settings(
+                        settings_path,
+                        settings_dest,
+                        config,
+                        ctx.install_python,
+                        ctx.install_typescript,
+                        ctx.project_dir,
+                    )
+                    if success:
+                        file_count += 1
+                        installed_files.append(str(settings_dest))
+                        ui.success("Installed settings.local.json")
+                    else:
+                        failed_files.append(settings_path)
+                        ui.warning("Failed to install settings.local.json")
+            else:
+                success = self._install_settings(
+                    settings_path, settings_dest, config, ctx.install_python, ctx.install_typescript, ctx.project_dir
+                )
+                if success:
+                    file_count += 1
+                    installed_files.append(str(settings_dest))
+                else:
+                    failed_files.append(settings_path)
 
         ctx.config["installed_files"] = installed_files
 
@@ -150,6 +278,45 @@ class ClaudeFilesStep(BaseStep):
                     ui.print(f"  - {failed}")
                 if len(failed_files) > 5:
                     ui.print(f"  ... and {len(failed_files) - 5} more")
+
+    def _install_settings(
+        self,
+        source_path: str,
+        dest_path: Path,
+        config: DownloadConfig,
+        install_python: bool,
+        install_typescript: bool,
+        project_dir: Path,
+    ) -> bool:
+        """Download and process settings file.
+
+        Args:
+            source_path: Path to settings file in repository
+            dest_path: Local destination path
+            config: Download configuration
+            install_python: Whether Python support is being installed
+            install_typescript: Whether TypeScript support is being installed
+            project_dir: Project directory for absolute hook paths
+
+        Returns:
+            True if successful, False otherwise
+        """
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            temp_file = Path(tmpdir) / "settings.json"
+            if not download_file(source_path, temp_file, config):
+                return False
+
+            try:
+                settings_content = temp_file.read_text()
+                processed_content = process_settings(settings_content, install_python, install_typescript)
+                processed_content = patch_hook_paths(processed_content, project_dir)
+                dest_path.parent.mkdir(parents=True, exist_ok=True)
+                dest_path.write_text(processed_content)
+                return True
+            except (json.JSONDecodeError, OSError, IOError):
+                return False
 
     def rollback(self, ctx: InstallContext) -> None:
         """Remove installed files."""

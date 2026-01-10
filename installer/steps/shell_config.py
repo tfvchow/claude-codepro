@@ -29,19 +29,31 @@ def get_alias_line(shell_type: str) -> str:
     The alias:
     - Uses nvm to set Node.js 22
     - Clears screen
-    - Uses dotenvx to load environment variables before running claude
+    - Runs Claude via wrapper.py for /spec command support
+    - Falls back to direct claude if wrapper not found
 
     Note: Rules are now natively loaded by Claude Code from .claude/rules/*.md
     """
+    claude_cmd = (
+        "if [ -f .claude/scripts/wrapper.py ]; then "
+        "dotenvx run -- python3 .claude/scripts/wrapper.py; "
+        "else dotenvx run -- claude; fi"
+    )
+    claude_cmd_fish = (
+        "if test -f .claude/scripts/wrapper.py; "
+        "dotenvx run -- python3 .claude/scripts/wrapper.py; "
+        "else; dotenvx run -- claude; end"
+    )
+
     if shell_type == "fish":
         return (
             f"{CCP_ALIAS_MARKER}\n"
             "alias ccp='"
             "if test -d .claude/rules; "
-            "nvm use 22; and clear; and dotenvx run -f .env -f .env.codepro -- claude; "
+            f"nvm use 22; and clear; and {claude_cmd_fish}; "
             "else if test -d /workspaces; "
             'set ccp_dir ""; for d in /workspaces/*/; test -d "$d.claude/rules"; and set ccp_dir "$d"; and break; end; '
-            'if test -n "$ccp_dir"; cd "$ccp_dir"; and nvm use 22; and clear; and dotenvx run -f .env -f .env.codepro -- claude; '
+            f'if test -n "$ccp_dir"; cd "$ccp_dir"; and nvm use 22; and clear; and {claude_cmd_fish}; '
             'else; echo "Error: No CCP project found in /workspaces"; end; '
             "else; "
             'echo "Error: Not a Claude CodePro project. Please cd to a CCP-enabled project first."; '
@@ -52,10 +64,10 @@ def get_alias_line(shell_type: str) -> str:
             f"{CCP_ALIAS_MARKER}\n"
             "alias ccp='"
             "if [ -d .claude/rules ]; then "
-            "nvm use 22 && clear && dotenvx run -f .env -f .env.codepro -- claude; "
+            f"nvm use 22 && clear && {claude_cmd}; "
             "elif [ -d /workspaces ]; then "
             'ccp_dir=""; for d in /workspaces/*/; do [ -d "$d.claude/rules" ] && ccp_dir="$d" && break; done; '
-            'if [ -n "$ccp_dir" ]; then cd "$ccp_dir" && nvm use 22 && clear && dotenvx run -f .env -f .env.codepro -- claude; '
+            f'if [ -n "$ccp_dir" ]; then cd "$ccp_dir" && nvm use 22 && clear && {claude_cmd}; '
             'else echo "Error: No CCP project found in /workspaces"; fi; '
             "else "
             'echo "Error: Not a Claude CodePro project. Please cd to a CCP-enabled project first."; '

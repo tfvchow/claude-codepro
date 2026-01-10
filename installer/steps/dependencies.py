@@ -43,6 +43,23 @@ def _run_bash_with_retry(command: str, cwd: Path | None = None) -> bool:
     return False
 
 
+def _get_nvm_source_cmd() -> str:
+    """Get the command to source NVM for nvm-specific commands.
+
+    Only needed for `nvm install`, `nvm use`, etc. - not for npm/node/claude.
+    """
+    nvm_locations = [
+        Path.home() / ".nvm" / "nvm.sh",
+        Path("/usr/local/share/nvm/nvm.sh"),
+    ]
+
+    for nvm_path in nvm_locations:
+        if nvm_path.exists():
+            return f"source {nvm_path} && "
+
+    return ""
+
+
 def install_nodejs() -> bool:
     """Install Node.js via NVM if not present."""
     if command_exists("node"):
@@ -53,7 +70,8 @@ def install_nodejs() -> bool:
         if not _run_bash_with_retry("curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.0/install.sh | bash"):
             return False
 
-    return _run_bash_with_retry("source ~/.nvm/nvm.sh && nvm install 22 && nvm use 22")
+    nvm_src = _get_nvm_source_cmd()
+    return _run_bash_with_retry(f"{nvm_src}nvm install 22 && nvm use 22")
 
 
 def install_uv() -> bool:
@@ -81,12 +99,98 @@ def install_python_tools() -> bool:
         return False
 
 
-def install_claude_code() -> bool:
-    """Install Claude Code CLI via official installer."""
-    if command_exists("claude"):
-        return True
+def _remove_native_claude_binaries() -> None:
+    """Remove native Claude Code binaries to avoid conflicts with npm install."""
+    native_bin = Path.home() / ".local" / "bin" / "claude"
+    native_data = Path.home() / ".local" / "share" / "claude"
 
-    return _run_bash_with_retry("curl -fsSL https://claude.ai/install.sh | bash")
+    if native_bin.exists():
+        native_bin.unlink()
+    if native_data.exists():
+        import shutil
+
+        shutil.rmtree(native_data, ignore_errors=True)
+
+
+def _patch_claude_config(config_updates: dict) -> bool:
+    """Patch ~/.claude.json with the given config updates.
+
+    Creates the file if it doesn't exist. Merges updates with existing config.
+    """
+    import json
+
+    config_path = Path.home() / ".claude.json"
+
+    try:
+        if config_path.exists():
+            config = json.loads(config_path.read_text())
+        else:
+            config = {}
+
+        config.update(config_updates)
+        config_path.write_text(json.dumps(config, indent=2) + "\n")
+        return True
+    except Exception:
+        return False
+
+
+def _configure_claude_defaults() -> bool:
+    """Configure Claude Code with recommended defaults after installation."""
+    return _patch_claude_config(
+        {
+            "installMethod": "npm-global",
+            "theme": "dark-ansi",
+            "verbose": True,
+            "autoCompactEnabled": False,
+            "autoConnectIde": True,
+            "respectGitignore": False,
+        }
+    )
+
+
+def _configure_firecrawl_mcp() -> bool:
+    """Add firecrawl MCP server to ~/.claude.json if not already present.
+
+    Only adds the firecrawl server - does not alter other MCP servers.
+    """
+    import json
+
+    config_path = Path.home() / ".claude.json"
+
+    firecrawl_config = {
+        "command": "npx",
+        "args": ["-y", "firecrawl-mcp"],
+        "env": {"FIRECRAWL_API_KEY": "${FIRECRAWL_API_KEY}"},
+    }
+
+    try:
+        if config_path.exists():
+            config = json.loads(config_path.read_text())
+        else:
+            config = {}
+
+        if "mcpServers" not in config:
+            config["mcpServers"] = {}
+
+        if "firecrawl" not in config["mcpServers"]:
+            config["mcpServers"]["firecrawl"] = firecrawl_config
+            config_path.write_text(json.dumps(config, indent=2) + "\n")
+
+        return True
+    except Exception:
+        return False
+
+
+def install_claude_code() -> bool:
+    """Install/upgrade Claude Code CLI via npm and configure defaults."""
+    _remove_native_claude_binaries()
+
+    if not _run_bash_with_retry("npm install -g @anthropic-ai/claude-code@latest"):
+        return False
+
+    _configure_claude_defaults()
+    _configure_firecrawl_mcp()
+    return True
 
 
 def install_qlty(project_dir: Path) -> tuple[bool, bool]:
@@ -142,124 +246,179 @@ def install_dotenvx() -> bool:
     return _run_bash_with_retry("curl -sfS https://dotenvx.sh | sh")
 
 
-def install_bun() -> bool:
-    """Install bun runtime if not present."""
-    if command_exists("bun"):
-        return True
-
-    return _run_bash_with_retry("curl -fsSL https://bun.sh/install | bash")
-
-
-def install_claude_mem() -> bool:
-    """Install claude-mem plugin for persistent memory across sessions."""
-    plugins_dir = Path.home() / ".claude" / "plugins"
-    claude_mem_dir = plugins_dir / "thedotmack"
-
-    if (claude_mem_dir / "dist").exists():
-        return True
-
-    plugins_dir.mkdir(parents=True, exist_ok=True)
-
-    if not claude_mem_dir.exists():
-        if not _run_bash_with_retry(
-            "git clone https://github.com/thedotmack/claude-mem.git thedotmack",
-            cwd=plugins_dir,
-        ):
-            return False
-
-    build_cmd = "bun install && bun run build" if command_exists("bun") else "npm install && npm run build"
-    if not _run_bash_with_retry(build_cmd, cwd=claude_mem_dir):
-        return False
-
-    known_marketplaces = {
-        "claude-plugins-official": {
-            "source": {"source": "github", "repo": "anthropics/claude-plugins-official"},
-            "installLocation": str(Path.home() / ".claude/plugins/marketplaces/claude-plugins-official"),
-            "lastUpdated": "2025-12-16T18:12:11.651Z",
-        },
-        "thedotmack": {
-            "source": {"source": "github", "repo": "thedotmack/claude-mem"},
-            "installLocation": str(Path.home() / ".claude/plugins/marketplaces/thedotmack"),
-            "lastUpdated": "2025-12-17T03:35:56.709Z",
-        },
-    }
-
-    import json
-
-    marketplaces_file = plugins_dir / "known_marketplaces.json"
-    marketplaces_file.write_text(json.dumps(known_marketplaces, indent=2))
-
-    return True
-
-
-MILVUS_COMPOSE_URL = (
-    "https://raw.githubusercontent.com/tfvchow/claude-codepro/main/.claude/scripts/milvus/docker-compose.yml"
-)
-MILVUS_COMPOSE_LOCAL_PATH = ".claude/scripts/milvus/docker-compose.yml"
-
-
-def _milvus_containers_running() -> bool:
-    """Check if Milvus containers are already running."""
+def _ensure_official_marketplace() -> bool:
+    """Ensure official Claude plugins marketplace is installed."""
     try:
         result = subprocess.run(
-            ["docker", "ps", "--filter", "name=milvus-standalone", "--format", "{{.Names}}"],
+            ["bash", "-c", "claude plugin marketplace add anthropics/claude-plugins-official"],
             capture_output=True,
             text=True,
         )
-        return "milvus-standalone" in result.stdout
+        output = (result.stdout + result.stderr).lower()
+        return result.returncode == 0 or "already installed" in output
     except Exception:
         return False
 
 
-def install_local_milvus(ui: Any = None, local_mode: bool = False, local_repo_dir: Path | None = None) -> bool:
-    """Start local Milvus via docker compose in ~/.claude/milvus/."""
-    import shutil
+def install_typescript_lsp() -> bool:
+    """Install TypeScript language server and plugin via npm and claude plugin."""
+    if not _run_bash_with_retry("npm install -g typescript-language-server typescript"):
+        return False
 
-    if _milvus_containers_running():
-        return True
+    if not _ensure_official_marketplace():
+        return False
 
-    milvus_dir = Path.home() / ".claude" / "milvus"
-    compose_file = milvus_dir / "docker-compose.yml"
+    return _run_bash_with_retry("claude plugin install typescript-lsp")
 
-    milvus_dir.mkdir(parents=True, exist_ok=True)
 
-    if local_mode and local_repo_dir:
-        source_file = local_repo_dir / MILVUS_COMPOSE_LOCAL_PATH
-        if source_file.exists():
-            shutil.copy2(source_file, compose_file)
-        else:
-            return False
-    else:
-        if not _run_bash_with_retry(f"curl -fsSL -o {compose_file} {MILVUS_COMPOSE_URL}"):
-            return False
+def install_pyright_lsp() -> bool:
+    """Install pyright language server and plugin via npm and claude plugin."""
+    if not _run_bash_with_retry("npm install -g pyright"):
+        return False
+
+    if not _ensure_official_marketplace():
+        return False
+
+    return _run_bash_with_retry("claude plugin install pyright-lsp")
+
+
+def _configure_claude_mem_defaults() -> bool:
+    """Configure Claude Mem with recommended defaults."""
+    import json
+
+    settings_dir = Path.home() / ".claude-mem"
+    settings_path = settings_dir / "settings.json"
 
     try:
-        process = subprocess.Popen(
-            ["sudo", "docker", "compose", "--progress=plain", "up", "-d"],
-            cwd=milvus_dir,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
+        settings_dir.mkdir(parents=True, exist_ok=True)
+
+        if settings_path.exists():
+            settings = json.loads(settings_path.read_text())
+        else:
+            settings = {}
+
+        settings.update(
+            {
+                "CLAUDE_MEM_FOLDER_CLAUDEMD_ENABLED": "false",
+                "CLAUDE_MEM_CONTEXT_SHOW_LAST_SUMMARY": "true",
+                "CLAUDE_MEM_CONTEXT_SHOW_LAST_MESSAGE": "true",
+                "CLAUDE_MEM_CONTEXT_OBSERVATIONS": "50",
+                "CLAUDE_MEM_CONTEXT_SESSION_COUNT": "10",
+                "CLAUDE_MEM_CONTEXT_FULL_COUNT": "10",
+                "CLAUDE_MEM_CONTEXT_FULL_FIELD": "facts",
+                "CLAUDE_MEM_MODEL": "opus",
+            }
         )
-
-        output_lines = []
-        if process.stdout:
-            for line in process.stdout:
-                line = _strip_ansi(line.rstrip())
-                output_lines.append(line)
-                if line and ui:
-                    ui.print(f"  {line}")
-
-        process.wait()
-
-        if process.returncode != 0:
-            output_text = "\n".join(output_lines)
-            if "is already in use" in output_text or "Conflict" in output_text:
-                return True
-
-        return process.returncode == 0
+        settings_path.write_text(json.dumps(settings, indent=2) + "\n")
+        return True
     except Exception:
         return False
+
+
+def _configure_vexor_defaults() -> bool:
+    """Configure Vexor with recommended defaults for semantic search."""
+    import json
+
+    config_dir = Path.home() / ".vexor"
+    config_path = config_dir / "config.json"
+
+    try:
+        config_dir.mkdir(parents=True, exist_ok=True)
+
+        if config_path.exists():
+            config = json.loads(config_path.read_text())
+        else:
+            config = {}
+
+        config.update(
+            {
+                "model": "text-embedding-3-small",
+                "batch_size": 64,
+                "embed_concurrency": 4,
+                "extract_concurrency": 4,
+                "extract_backend": "auto",
+                "provider": "openai",
+                "auto_index": True,
+                "local_cuda": False,
+                "rerank": "bm25",
+            }
+        )
+        config_path.write_text(json.dumps(config, indent=2) + "\n")
+        return True
+    except Exception:
+        return False
+
+
+def install_vexor() -> bool:
+    """Install Vexor semantic search tool and configure defaults."""
+    if command_exists("vexor"):
+        _configure_vexor_defaults()
+        return True
+
+    try:
+        subprocess.run(
+            ["uv", "tool", "install", "vexor"],
+            check=True,
+            capture_output=True,
+        )
+        _configure_vexor_defaults()
+        return True
+    except subprocess.CalledProcessError:
+        return False
+
+
+def _ensure_maxritter_marketplace() -> bool:
+    """Ensure claude-mem marketplace points to maxritter repo.
+
+    Checks known_marketplaces.json for thedotmack entry. If it exists
+    but doesn't contain 'maxritter' in the URL, removes and re-adds it.
+    """
+    import json
+
+    marketplaces_path = Path.home() / ".claude" / "plugins" / "known_marketplaces.json"
+
+    if marketplaces_path.exists():
+        try:
+            data = json.loads(marketplaces_path.read_text())
+            thedotmack = data.get("thedotmack", {})
+            source = thedotmack.get("source", {})
+            url = source.get("url", "")
+
+            if thedotmack and "maxritter" not in url:
+                subprocess.run(
+                    ["bash", "-c", "claude plugin marketplace rm thedotmack"],
+                    capture_output=True,
+                )
+        except (json.JSONDecodeError, KeyError):
+            pass
+
+    try:
+        result = subprocess.run(
+            ["bash", "-c", "claude plugin marketplace add https://github.com/maxritter/claude-mem.git"],
+            capture_output=True,
+            text=True,
+        )
+        output = (result.stdout + result.stderr).lower()
+        return result.returncode == 0 or "already installed" in output
+    except Exception:
+        return False
+
+
+def install_claude_mem() -> bool:
+    """Install claude-mem plugin via claude plugin marketplace."""
+    if not _ensure_maxritter_marketplace():
+        return False
+
+    if not _run_bash_with_retry("claude plugin install claude-mem"):
+        return False
+
+    _configure_claude_mem_defaults()
+    return True
+
+
+def install_context7() -> bool:
+    """Install context7 plugin via claude plugin."""
+    return _run_bash_with_retry("claude plugin install context7")
 
 
 def _install_with_spinner(ui: Any, name: str, install_fn: Any, *args: Any) -> bool:
@@ -300,26 +459,27 @@ class DependenciesStep(BaseStep):
             if _install_with_spinner(ui, "Python tools", install_python_tools):
                 installed.append("python_tools")
 
-        if ui:
-            ui.info("Claude Code CLI installation may take 1-2 minutes...")
         if _install_with_spinner(ui, "Claude Code", install_claude_code):
             installed.append("claude_code")
+            if ui:
+                ui.success("Claude Code config defaults applied")
 
-        if _install_with_spinner(ui, "bun", install_bun):
-            installed.append("bun")
+        if ctx.install_typescript:
+            if _install_with_spinner(ui, "TypeScript LSP", install_typescript_lsp):
+                installed.append("typescript_lsp")
+
+        if ctx.install_python:
+            if _install_with_spinner(ui, "Pyright LSP", install_pyright_lsp):
+                installed.append("pyright_lsp")
 
         if _install_with_spinner(ui, "claude-mem plugin", install_claude_mem):
             installed.append("claude_mem")
 
-        if ui:
-            ui.status("Starting local Milvus for Claude Context...")
-        if install_local_milvus(ui, ctx.local_mode, ctx.local_repo_dir):
-            installed.append("local_milvus")
-            if ui:
-                ui.success("Local Milvus started")
-        else:
-            if ui:
-                ui.warning("Could not start Milvus - please install manually")
+        if _install_with_spinner(ui, "Context7 plugin", install_context7):
+            installed.append("context7")
+
+        if _install_with_spinner(ui, "Vexor semantic search", install_vexor):
+            installed.append("vexor")
 
         qlty_result = install_qlty(ctx.project_dir)
         if qlty_result[0]:
