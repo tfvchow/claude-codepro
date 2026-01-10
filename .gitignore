@@ -235,3 +235,4 @@ docs/plans
 
 # Kiro
 .kiro/
+.claude/plugins/
