@@ -18,7 +18,7 @@
 
 | Instead of Sub-Agent | Use These Directly |
 |----------------------|---------------------|
-| `Task(subagent_type="Explore")` | `Read`, `Grep`, `Glob`, `mcp__claude-context__search_code` |
+| `Task(subagent_type="Explore")` | `Read`, `Grep`, `Glob` |
 | `Task(subagent_type="Plan")` | `/plan` slash command |
 | `Task(subagent_type="general-purpose")` | Direct tool calls (Read, Grep, Bash, etc.) |
 
@@ -34,8 +34,8 @@ The project uses a three-phase workflow that must be followed strictly:
 
 | Phase | Command | Status | Next Action |
 |-------|---------|--------|-------------|
-| Planning | `/plan` | Creates plan with `Status: PENDING` | User reviews, then `/implement` |
-| Implementation | `/implement` | Updates to `Status: COMPLETE` | Run `/verify` |
+| Planning | `/plan` | Creates plan with `Status: PENDING` | Ask user approval, then auto-continue |
+| Implementation | `/implement` | Updates to `Status: COMPLETE` | Auto-continue to `/verify` |
 | Verification | `/verify` | Updates to `Status: VERIFIED` | Done |
 
 **Status values in plan files:**

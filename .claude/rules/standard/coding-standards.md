@@ -26,20 +26,6 @@ Use descriptive names that reveal intent without requiring comments:
 
 **Function Size**: Keep functions small and focused. Extract complex logic into well-named helper functions.
 
-### Project Organization
-
-Follow existing project structure. For new projects:
-- Source code in `src/` or project name directory
-- Tests in `tests/` (mirroring source structure)
-- Documentation in `docs/`
-- Configuration at project root
-
-**README.md minimum:**
-- Project purpose (one paragraph)
-- Installation/setup steps
-- Basic usage example
-- How to run tests
-
 ### Quality Checks
 
 **Diagnostics**: Use `getDiagnostics` tool before starting work and after making changes. Fix all errors before considering the task complete.
@@ -47,20 +33,6 @@ Follow existing project structure. For new projects:
 **Formatting**: Let automated formatters handle code style. Don't manually format code.
 
 **Backward Compatibility**: Only add compatibility logic when explicitly required by the user. Don't assume you need to support old versions.
-
-### Error Handling
-
-**Fail Fast**: Validate inputs early. Throw specific exceptions rather than returning null or allowing invalid state.
-
-**Exception Types**: Use specific exception types (not generic `Exception`). Create hierarchies for related errors.
-
-**Centralized Handling**: Handle errors at boundaries (controllers, API layers). Let exceptions bubble up to centralized handlers.
-
-**Retry Strategies**: Use exponential backoff for transient failures (network timeouts, 503, 429). Never retry non-idempotent operations or client errors (400, 401, 404).
-
-**Resource Cleanup**: Always clean up resources (connections, file handles) in finally blocks or context managers.
-
-**User Messages**: Log technical details for debugging. Show safe, actionable messages to users without exposing internals.
 
 ### Decision Framework
 

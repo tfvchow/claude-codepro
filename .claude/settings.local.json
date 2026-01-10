@@ -1,14 +1,14 @@
 {
   "env": {
     "ANTHROPIC_CUSTOM_HEADERS": "anthropic-beta: interleaved-thinking-2025-05-14",
-    "ENABLE_EXPERIMENTAL_MCP_CLI": "true",
-    "CLAUDE_MEM_MODEL": "opus",
+    "ENABLE_TOOL_SEARCH": "1",
+    "ENABLE_LSP_TOOL": "1",
     "CLAUDE_CODE_MAX_OUTPUT_TOKENS": "63999",
     "MAX_MCP_OUTPUT_TOKENS": "10000",
     "MAX_THINKING_TOKENS": "63999",
+    "CLAUDE_MEM_MODEL": "opus",
     "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "true",
-    "DISABLE_TELEMETRY": "true",
-    "CUSTOM_IGNORE_PATTERNS": "**/node_modules/**,**/cdk.out/**,**/__pycache__/**,**/.venv/**,**/venv/**,**/.uv/**,**/.git/**,**/dist/**,**/build/**,**/.mypy_cache/**,**/.pytest_cache/**,**/.ruff_cache/**,**/coverage/**,**/.coverage/**,**/*.egg-info/**,**/.next/**,**/.tox/**,**/.cache/**,**/*.pyc,**/*.pyo,**/.terraform/**,**/vendor/**,**/target/**,**/.idea/**,**/test-reports/**,**/*.lock,**/yarn.lock,**/uv.lock,**/package-lock.json,**/.DS_Store,**/Thumbs.db,**/*.log,**/htmlcov/**,**/.hypothesis/**,**/.ipynb_checkpoints/**,**/wheels/**,**/*.egg,**/.eggs/**,**/downloads/**,**/sdist/**,**/*.whl"
+    "DISABLE_TELEMETRY": "true"
   },
   "permissions": {
     "allow": [
@@ -42,29 +42,21 @@
       "WebFetch",
       "WebSearch",
       "Write",
-      "mcp__ide__getDiagnostics",
-      "mcp__claude-context__index_codebase",
-      "mcp__claude-context__get_indexing_status",
-      "mcp__claude-context__search_code",
-      "mcp__claude-context__clear_index",
-      "mcp__Ref__ref_search_documentation",
-      "mcp__Ref__ref_read_url",
-      "mcp__tavily__tavily-search",
-      "mcp__tavily__tavily-extract",
-      "mcp__tavily__tavily-map",
-      "mcp__tavily__tavily-crawl",
-      "SlashCommand(/implement:*)",
-      "SlashCommand(/plan:*)",
-      "SlashCommand(/verify:*)",
-      "SlashCommand(/setup:*)",
-      "Skill(claude-mem:mem-search)",
-      "Skill(claude-mem:troubleshoot)"
+      "mcp__ide__*",
+      "mcp__firecrawl__*",
+      "mcp__plugin_claude-mem_mcp-search__*",
+      "mcp__plugin_context7_context7__*",
+      "Skill(ccp)",
+      "Skill(vexor-cli)",
+      "Skill(plan)",
+      "Skill(implement)",
+      "Skill(verify)",
+      "Skill(setup)"
     ],
     "deny": []
   },
   "model": "opus",
   "enableAllProjectMcpServers": true,
-  "enabledMcpjsonServers": ["claude-context", "tavily", "Ref"],
   "hooks": {
     "PreToolUse": [
       {
@@ -72,7 +64,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 .claude/hooks/tdd_enforcer.py"
+            "command": "python3 /workspaces/claude-codepro/.claude/hooks/tdd_enforcer.py"
           }
         ]
       }
@@ -83,20 +75,24 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 .claude/hooks/file_checker_qlty.py"
+            "command": "python3 /workspaces/claude-codepro/.claude/hooks/file_checker_qlty.py"
           },
           {
             "type": "command",
-            "command": "python3 .claude/hooks/file_checker_python.py"
+            "command": "python3 /workspaces/claude-codepro/.claude/hooks/file_checker_python.py"
+          },
+          {
+            "type": "command",
+            "command": "python3 /workspaces/claude-codepro/.claude/hooks/file_checker_ts.py"
           }
         ]
       },
       {
-        "matcher": "Bash|Read|Grep|Glob",
+        "matcher": "Bash|Read|Grep|Glob|Write|Edit|MultiEdit",
         "hooks": [
           {
             "type": "command",
-            "command": "python3 .claude/hooks/context_monitor.py"
+            "command": "python3 /workspaces/claude-codepro/.claude/hooks/context_monitor.py"
           }
         ]
       }
@@ -106,9 +102,6 @@
     "type": "command",
     "command": "npx -y ccstatusline@latest",
     "padding": 0
-  },
-  "enabledPlugins": {
-    "claude-mem@thedotmack": true
   },
   "outputStyle": "default",
   "spinnerTipsEnabled": false,

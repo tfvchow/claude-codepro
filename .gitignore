@@ -154,7 +154,7 @@ activemq-data/
 *.sage.py
 
 # Environments
-.env
+.env*
 .envrc
 .venv
 env/
@@ -227,6 +227,7 @@ __marimo__/
 *.backup
 .claude/rules/custom/*
 !.claude/rules/custom/python-rules.md
+!.claude/rules/custom/typescript-rules.md
 
 # Build artifacts
 .claude/bin/
