@@ -16,6 +16,10 @@ if [ -f ~/.docker/config.json ] && command -v jq &> /dev/null; then
     jq 'del(.credsStore)' ~/.docker/config.json > ~/.docker/config.json.tmp && mv ~/.docker/config.json.tmp ~/.docker/config.json
 fi
 
+# Configure git identity (not mounted from host to avoid write conflicts)
+git config --global user.name "Vincent Tsz-Fai Chow"
+git config --global user.email "tfvchow@gmail.com"
+
 # Setup Claude config symlink for credential persistence across rebuilds.
 # Claude Code requires both /root/.claude/ dir and /root/.claude.json file.
 # We store .claude.json inside the mounted volume and symlink to it.

@@ -85,10 +85,9 @@
       "version": "latest"
     }
   },
-  "initializeCommand": "[ -f ~/.gitconfig ] || touch ~/.gitconfig",
   "mounts": [
     "source=${localWorkspaceFolderBasename}-claude-config,target=/root/.claude,type=volume",
-    "source=${localEnv:HOME}/.gitconfig,target=/root/.gitconfig,type=bind"
+    "source=${localWorkspaceFolderBasename}-gh-config,target=/root/.config/gh,type=volume"
   ],
   "postCreateCommand": ".devcontainer/postCreateCommand.sh",
   "remoteUser": "root",
