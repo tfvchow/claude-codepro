@@ -247,6 +247,25 @@ class ClaudeFilesStep(BaseStep):
                 else:
                     failed_files.append(settings_path)
 
+        # Install .mcp.json (MCP server configuration)
+        mcp_dest = ctx.project_dir / ".mcp.json"
+        mcp_source = ".mcp.json"
+        if ui:
+            with ui.spinner("Installing .mcp.json..."):
+                if download_file(mcp_source, mcp_dest, config):
+                    file_count += 1
+                    installed_files.append(str(mcp_dest))
+                    ui.success("Installed .mcp.json")
+                else:
+                    failed_files.append(mcp_source)
+                    ui.warning("Failed to install .mcp.json")
+        else:
+            if download_file(mcp_source, mcp_dest, config):
+                file_count += 1
+                installed_files.append(str(mcp_dest))
+            else:
+                failed_files.append(mcp_source)
+
         ctx.config["installed_files"] = installed_files
 
         hooks_dir = ctx.project_dir / ".claude" / "hooks"
