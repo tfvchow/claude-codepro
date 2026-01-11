@@ -80,9 +80,15 @@ apt-get update -qq && apt-get install gh -y -qq
 echo "Installing CodeRabbit CLI..."
 bash -c "$(curl -fsSL https://cli.coderabbit.ai/install.sh)"
 
-# Run Claude CodePro installer (local mode for development)
-echo "Running Claude CodePro installer (local)..."
-cd "${WORKSPACE_ROOT}" && uv run python -m installer.cli install --local
+# Run Claude CodePro installer
+# Detect if we're in the claude-codepro development repo or a target project
+if [ -f "${WORKSPACE_ROOT}/installer/cli.py" ] && grep -q "claude-codepro" "${WORKSPACE_ROOT}/pyproject.toml" 2>/dev/null; then
+    echo "Running Claude CodePro installer (local development mode)..."
+    cd "${WORKSPACE_ROOT}" && uv run python -m installer.cli install --local
+else
+    echo "Running Claude CodePro installer..."
+    cd "${WORKSPACE_ROOT}" && curl -fsSL https://raw.githubusercontent.com/tfvchow/claude-codepro/v4.1.4/install.sh | bash
+fi
 
 echo ""
 echo "======================================================================"
