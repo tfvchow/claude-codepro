@@ -65,6 +65,13 @@ echo -e "\nexport QLTY_INSTALL=\"\$HOME/.qlty\"" >> ~/.zshrc
 echo -e 'export PATH=$QLTY_INSTALL/bin:$PATH' >> ~/.zshrc
 "$HOME/.qlty/bin/qlty" check --install-only || true
 
+# Install GitHub CLI for git operations
+echo "Installing GitHub CLI..."
+curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg 2>/dev/null
+chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" > /etc/apt/sources.list.d/github-cli.list
+apt-get update -qq && apt-get install gh -y -qq
+
 # Install CodeRabbit CLI (use bash -c to ensure SHELL is set)
 echo "Installing CodeRabbit CLI..."
 bash -c "$(curl -fsSL https://cli.coderabbit.ai/install.sh)"
