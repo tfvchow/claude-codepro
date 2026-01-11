@@ -13,7 +13,7 @@ from installer.steps.base import BaseStep
 if TYPE_CHECKING:
     from installer.context import InstallContext
 
-SETTINGS_FILE = "settings.local.json"
+SETTINGS_FILE = "settings.json"
 PYTHON_CHECKER_HOOK = "python3 .claude/hooks/file_checker_python.py"
 TYPESCRIPT_CHECKER_HOOK = "python3 .claude/hooks/file_checker_ts.py"
 HOOKS_PATH_PATTERN = ".claude/hooks/"
@@ -75,7 +75,7 @@ class ClaudeFilesStep(BaseStep):
     def check(self, ctx: InstallContext) -> bool:
         """Check if .claude files are already installed.
 
-        Note: Always returns False to ensure settings.local.json is updated.
+        Note: Always returns False to ensure settings.json is updated.
         This step is idempotent - files are overwritten without backup.
         """
         return False
@@ -217,7 +217,7 @@ class ClaudeFilesStep(BaseStep):
                     else:
                         failed_files.append(file_path)
 
-        settings_dest = ctx.project_dir / ".claude" / "settings.local.json"
+        settings_dest = ctx.project_dir / ".claude" / "settings.json"
 
         if settings_path:
             if ui:
@@ -233,10 +233,10 @@ class ClaudeFilesStep(BaseStep):
                     if success:
                         file_count += 1
                         installed_files.append(str(settings_dest))
-                        ui.success("Installed settings.local.json")
+                        ui.success("Installed settings.json")
                     else:
                         failed_files.append(settings_path)
-                        ui.warning("Failed to install settings.local.json")
+                        ui.warning("Failed to install settings.json")
             else:
                 success = self._install_settings(
                     settings_path, settings_dest, config, ctx.install_python, ctx.install_typescript, ctx.project_dir
