@@ -323,7 +323,7 @@ def install_vexor() -> bool:
 
     try:
         subprocess.run(
-            ["uv", "tool", "install", "vexor"],
+            ["uv", "tool", "install", "vexor", "--python", "3.12"],
             check=True,
             capture_output=True,
         )
