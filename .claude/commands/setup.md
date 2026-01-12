@@ -1,101 +1,21 @@
 ---
-description: Initialize project context and indexing with Claude CodePro
+description: Initialize project instruction rules, MCP server rules and semantic search indexing
 model: opus
 ---
-# SETUP MODE: Project Initialization and Context Building
+# /setup - Project Initialization
 
-**Purpose:** Scan project structure, create project documentation, initialize semantic search, configure MCP tools documentation, and store project knowledge in persistent memory.
+**Run once to initialize project context.** Scans project structure, creates documentation, and builds semantic search index. Benefits both Spec-Driven and Quick modes.
+
+## What It Does
+
+1. **Project Discovery** - Scans directories, identifies technologies and frameworks
+2. **Documentation** - Creates `.claude/rules/custom/project.md` with project context
+3. **MCP Documentation** - Documents external MCP servers if configured
+4. **Semantic Search** - Initializes Vexor index for code search
 
 ---
 
 ## Execution Sequence
-
-### Phase 0: Custom MCP Servers Configuration
-
-**Purpose:** Document any custom MCP servers the user has added beyond the standard ones (claude-context, tavily, Ref).
-
-1. **Ask user about custom MCP servers:**
-
-   Use AskUserQuestion:
-   ```
-   Question: "Do you have custom MCP servers to add to this project?"
-   Options:
-   - "Yes, let me add them now" - User will edit .mcp.json
-   - "No, skip this step" - Proceed without custom servers
-   ```
-
-2. **If user selects "Yes":**
-
-   Display instructions:
-   ```
-   Please add your custom MCP servers to .mcp.json now.
-
-   The file is located at: [project_dir]/.mcp.json
-
-   Example format:
-   {
-     "mcpServers": {
-       "your-server-name": {
-         "command": "npx",
-         "args": ["-y", "your-mcp-package"]
-       }
-     }
-   }
-
-   Note: claude-context, tavily, and Ref are already configured.
-   ```
-
-   Then ask for confirmation:
-   ```
-   Question: "Have you finished adding your MCP servers?"
-   Options:
-   - "Yes, I've added them" - Proceed to create documentation
-   - "Skip for now" - Continue without documenting custom servers
-   ```
-
-3. **Read .mcp.json and identify custom servers:**
-
-   ```python
-   Read(file_path=".mcp.json")
-   ```
-
-   Parse the JSON and filter out standard servers:
-   - Exclude: `claude-context`, `tavily`, `Ref`
-   - Keep: All other servers as "custom"
-
-4. **If custom servers found, create `.claude/rules/custom/mcp-tools.md`:**
-
-   Generate content with this structure:
-
-   ```markdown
-   ## Custom MCP Servers
-
-   This project uses the following custom MCP servers in addition to the standard ones (claude-context, tavily, Ref).
-
-   ### [Server Name]
-
-   **Command:** `[command from config]`
-   **Args:** `[args from config]`
-
-   **When to use:**
-   - [Brief description - ask user or infer from server name]
-
-   **Example usage:**
-   ```
-   mcp__[server-name]__[tool_name](param="value")
-   ```
-
-   [Repeat for each custom server]
-   ```
-
-5. **Write the custom MCP tools rule:**
-   ```python
-   Write(file_path=".claude/rules/custom/mcp-tools.md", content=generated_content)
-   ```
-
-   If no custom servers found, skip creating this file.
-
----
 
 ### Phase 1: Project Discovery
 
@@ -174,7 +94,7 @@ model: opus
 
 ## Architecture Notes
 
-[Brief description of architecture patterns used, e.g., "Monorepo with shared packages", "Microservices", "MVC pattern"]
+[Brief description of architecture patterns used]
 
 ## Additional Context
 
@@ -186,105 +106,89 @@ model: opus
    Write(file_path=".claude/rules/custom/project.md", content=generated_content)
    ```
 
-### Phase 3: Initialize Semantic Search
+### Phase 3: Document External MCP Servers
 
-1. **Get current working directory as absolute path:**
+**Purpose:** If the user has configured external MCP servers in `.mcp.json`, create documentation to help Claude use them effectively.
+
+1. **Check for `.mcp.json` in project root:**
    ```bash
-   pwd
+   cat .mcp.json 2>/dev/null || echo "NO_MCP_CONFIG"
    ```
 
-2. **Check Claude Context indexing status:**
-   ```python
-   mcp__claude-context__get_indexing_status(path="/absolute/path/to/project")
-   ```
+2. **If `.mcp.json` exists with `mcpServers`:**
+   - Parse the JSON to get server names
+   - Filter out built-in servers: `firecrawl`, `context7`, `claude-mem`, `ide`, `plugin_*`
+   - If external servers remain, proceed to step 3
+   - If no external servers, skip to Phase 4
 
-3. **If not indexed or index is stale, start indexing:**
-   ```python
-   mcp__claude-context__index_codebase(
-       path="/absolute/path/to/project",
-       splitter="ast",
-       force=False
-   )
-   ```
+3. **Check if mcp-servers.md already exists:**
+   - If exists, ask user: "mcp-servers.md already exists. Overwrite? (y/N)"
+   - If user says no, skip to Phase 4
 
-   Note: Ignore patterns are configured directly in the MCP server, no need to pass them here.
+4. **For each external MCP server, gather information:**
+   - Use `mcp-cli info <server>/<tool>` to discover available tools
+   - Use `mcp-cli tools <server>` to list all tools for that server
+   - Web search for official documentation if available
 
-4. **Monitor indexing progress (check every 10 seconds until complete):**
-   ```python
-   # Keep checking until status shows "indexed" or error
-   mcp__claude-context__get_indexing_status(path="/absolute/path/to/project")
-   ```
+5. **Generate `.claude/rules/custom/mcp-servers.md`:**
 
-5. **Verify indexing with a test search:**
-   ```python
-   mcp__claude-context__search_code(
-       path="/absolute/path/to/project",
-       query="main entry point function",
-       limit=3
-   )
-   ```
+```markdown
+# External MCP Servers
 
-### Phase 4: Completion Summary
+**Last Updated:** [Current date]
 
-Display a summary like:
+This project has the following external MCP servers configured.
 
+## [Server Name]
+
+**Description:** [Brief description]
+
+**Available Tools:**
+- `tool_name` - [Description]
+
+**Example:**
+```bash
+mcp-cli call [server]/[tool] '{"param": "value"}'
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     Setup Complete!                         │
-├─────────────────────────────────────────────────────────────┤
-│ Created:                                                    │
-│   ✓ .claude/rules/custom/project.md                        │
-│   ✓ .claude/rules/custom/mcp-tools.md (if custom servers)  │
-│                                                             │
-│ Semantic Search:                                            │
-│   ✓ Claude Context index initialized                       │
-│   ✓ Excluded: node_modules, __pycache__, .venv, cdk.out... │
-│   ✓ Indexed X files                                        │
-│                                                             │
-│ MCP Servers:                                                │
-│   ✓ Standard: claude-context, tavily, Ref                  │
-│   ✓ Custom: [list custom server names or "none"]           │
-├─────────────────────────────────────────────────────────────┤
-│ Next Steps:                                                 │
-│   1. Run 'ccp' to reload with new rules in context         │
-│   2. Use /plan to create a feature plan                    │
-│   3. Use /implement to execute the plan                    │
-│   4. Use /verify to verify implementation                  │
-└─────────────────────────────────────────────────────────────┘
 ```
+
+6. **Write the file:**
+   ```python
+   Write(file_path=".claude/rules/custom/mcp-servers.md", content=generated_content)
+   ```
+
+### Phase 4: Initialize Semantic Search with Vexor
+
+1. **Check if Vexor is available:**
+   ```bash
+   vexor --version
+   ```
+
+2. **Build the index:**
+   ```bash
+   vexor index --path /absolute/path/to/project
+   ```
+
+3. **Verify with a test search:**
+   ```bash
+   vexor search "main entry point" --top 3
+   ```
+
+4. **Check index metadata:**
+   ```bash
+   vexor index --show
+   ```
 
 ## Error Handling
 
 - **If tree command not available:** Use `ls -la` recursively with depth limit
-- **If indexing fails:** Log error, continue with other steps, suggest manual indexing
+- **If Vexor not installed:** Inform user and skip indexing
 - **If README.md missing:** Ask user for brief project description
-- **If package.json/pyproject.toml missing:** Infer from file extensions and directory structure
-- **If indexing gets stuck:** Clear index and retry with `force=true`
+- **If package.json/pyproject.toml missing:** Infer from file extensions
 
 ## Important Notes
 
-- Always use absolute paths for MCP tools
+- Use absolute paths when specifying `--path` for Vexor
 - Don't overwrite existing project.md without confirmation
-- Keep project.md concise - it will be included in every Claude Code session
-- Focus on information that helps Claude understand how to work with this codebase
-
-## Indexing Exclusion Patterns
-
-The following patterns are excluded from semantic indexing to keep the index fast and relevant:
-
-| Pattern | Reason |
-|---------|--------|
-| `node_modules/**` | NPM dependencies |
-| `__pycache__/**`, `*.pyc`, `*.pyo` | Python bytecode |
-| `.venv/**`, `venv/**`, `.uv/**` | Python virtual environments |
-| `.git/**` | Git internals |
-| `dist/**`, `build/**`, `target/**` | Build outputs |
-| `cdk.out/**` | CDK synthesized CloudFormation |
-| `.mypy_cache/**`, `.pytest_cache/**`, `.ruff_cache/**` | Tool caches |
-| `coverage/**`, `.coverage/**` | Test coverage data |
-| `*.egg-info/**` | Python packaging |
-| `.next/**` | Next.js build output |
-| `.tox/**` | Tox testing environments |
-| `.cache/**` | Generic cache directories |
-| `.terraform/**` | Terraform state/modules |
-| `vendor/**` | Vendored dependencies |
+- Keep project.md concise - it's included in every session
+- Vexor respects `.gitignore` by default
